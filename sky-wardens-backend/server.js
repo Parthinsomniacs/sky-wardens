@@ -41,9 +41,9 @@ app.use(
   })
 );
 
-// 3. Body Parser (limit payload to 10MB for base64 / product images)
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// 3. Body Parser (limit payload to 50MB for high-res base64 / product images)
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // 4. NoSQL Query Injection & Prototype Pollution Sanitization (Express 5 Compatible)
 const cleanSanitize = (obj) => {
@@ -93,6 +93,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/products", require("./src/routes/productRoutes"));
 app.use("/api/divisions", require("./src/routes/divisionRoutes"));
+app.use("/api/categories", require("./src/routes/categoryRoutes"));
 app.use("/api/leads", require("./src/routes/leadRoutes"));
 app.use("/api/users", require("./src/routes/userRoutes"));
 

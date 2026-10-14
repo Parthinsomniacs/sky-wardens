@@ -6,32 +6,42 @@ const { findByIdOrCustomId, escapeRegex } = require("../utils/queryHelper");
 // @route   GET /api/products
 // @access  Public
 const getPublicProducts = asyncHandler(async (req, res) => {
-  const { division, category, search } = req.query;
+  const { division, category, categoryId, search } = req.query;
 
   // Public visitors only see Active catalog equipment
   const query = { status: "Active" };
 
-  if (division) {
+  if (division && division !== "all" && division !== "All") {
     const escapedDiv = escapeRegex(division);
     query.division = new RegExp(`^${escapedDiv}$`, "i");
   }
 
-  if (category && category !== "all") {
-    const escapedCat = escapeRegex(category);
-    query.$or = [
-      { categoryId: category },
-      { categoryTitle: new RegExp(escapedCat, "i") },
-      { categoryName: new RegExp(escapedCat, "i") },
-    ];
+  const andClauses = [];
+  const catParam = category || categoryId;
+  if (catParam && catParam !== "all") {
+    const escapedCat = escapeRegex(catParam);
+    andClauses.push({
+      $or: [
+        { categoryId: catParam },
+        { categoryTitle: new RegExp(escapedCat, "i") },
+        { categoryName: new RegExp(escapedCat, "i") },
+      ],
+    });
   }
 
   if (search) {
     const escapedSearch = escapeRegex(search);
-    query.$or = [
-      { name: new RegExp(escapedSearch, "i") },
-      { description: new RegExp(escapedSearch, "i") },
-      { id: new RegExp(escapedSearch, "i") },
-    ];
+    andClauses.push({
+      $or: [
+        { name: new RegExp(escapedSearch, "i") },
+        { description: new RegExp(escapedSearch, "i") },
+        { id: new RegExp(escapedSearch, "i") },
+      ],
+    });
+  }
+
+  if (andClauses.length > 0) {
+    query.$and = andClauses;
   }
 
   const products = await Product.find(query).sort({ createdAt: -1 });
@@ -47,7 +57,47 @@ const getPublicProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/admin/all
 // @access  Private (Admin / Super Admin clearance)
 const getAllAdminProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find().sort({ createdAt: -1 });
+  const { division, category, categoryId, status, search } = req.query;
+  const query = {};
+
+  if (status && status !== "all") {
+    query.status = status;
+  }
+
+  if (division && division !== "all" && division !== "All") {
+    const escapedDiv = escapeRegex(division);
+    query.division = new RegExp(`^${escapedDiv}$`, "i");
+  }
+
+  const andClauses = [];
+  const catParam = category || categoryId;
+  if (catParam && catParam !== "all") {
+    const escapedCat = escapeRegex(catParam);
+    andClauses.push({
+      $or: [
+        { categoryId: catParam },
+        { categoryTitle: new RegExp(escapedCat, "i") },
+        { categoryName: new RegExp(escapedCat, "i") },
+      ],
+    });
+  }
+
+  if (search) {
+    const escapedSearch = escapeRegex(search);
+    andClauses.push({
+      $or: [
+        { name: new RegExp(escapedSearch, "i") },
+        { description: new RegExp(escapedSearch, "i") },
+        { id: new RegExp(escapedSearch, "i") },
+      ],
+    });
+  }
+
+  if (andClauses.length > 0) {
+    query.$and = andClauses;
+  }
+
+  const products = await Product.find(query).sort({ createdAt: -1 });
 
   res.status(200).json({
     success: true,

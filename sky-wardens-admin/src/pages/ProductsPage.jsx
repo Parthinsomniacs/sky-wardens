@@ -93,7 +93,9 @@ export default function ProductsPage({
   const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'Active' | 'Inactive'
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' | 'table'
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem("sky_wardens_products_view") || "table";
+  }); // 'table' (List View default) | 'grid'
 
   // Side Drawer & Modals state
   const [showAddDrawer, setShowAddDrawer] = useState(false); // Add Sidebar Drawer
@@ -137,10 +139,13 @@ export default function ProductsPage({
 
   // Active categories definition dynamically from context
   const currentCategoryDefinitions = useMemo(() => {
-    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
-      return categories;
+    let cats = categories;
+    if (activeDivision && activeDivision !== "All" && activeDivision !== "all") {
+      cats = categories.filter((c) => c.division === activeDivision);
     }
-    return categories.filter((c) => c.division === activeDivision);
+    return cats
+      .filter((c) => c.status !== "Inactive")
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [categories, activeDivision]);
 
   // Compute live product counts per category in this division
@@ -148,7 +153,11 @@ export default function ProductsPage({
     const counts = {};
     currentProducts.forEach((p) => {
       const catId = p.categoryId;
-      counts[catId] = (counts[catId] || 0) + 1;
+      const catTitle = p.categoryTitle || p.categoryName;
+      if (catId) counts[catId] = (counts[catId] || 0) + 1;
+      if (catTitle && catTitle !== catId) {
+        counts[catTitle] = (counts[catTitle] || 0) + 1;
+      }
     });
     return counts;
   }, [currentProducts]);
@@ -168,7 +177,15 @@ export default function ProductsPage({
     return currentProducts.filter((p) => {
       // Category filter
       const matchesCategory =
-        selectedCategory === "all" || p.categoryId === selectedCategory;
+        selectedCategory === "all" ||
+        p.categoryId === selectedCategory ||
+        p.categoryTitle === selectedCategory ||
+        p.categoryName === selectedCategory ||
+        (selectedCategory && (
+          (p.categoryId && p.categoryId.toLowerCase() === selectedCategory.toLowerCase()) ||
+          (p.categoryTitle && p.categoryTitle.toLowerCase() === selectedCategory.toLowerCase()) ||
+          (p.categoryName && p.categoryName.toLowerCase() === selectedCategory.toLowerCase())
+        ));
 
       // Status filter
       const pStatus = p.status || "Active";
@@ -379,8 +396,65 @@ export default function ProductsPage({
       </div>
 
       {/* Main Filter & Search Bar */}
-      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5">
-        {/* Search Input, Status Filter & View Toggle */}
+      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5 space-y-3.5">
+        {/* 1. Industrial Division Selector Tabs */}
+        <div className="flex items-center gap-2 pb-3 border-b border-[#e2e8f0] overflow-x-auto scrollbar-none">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1">
+            Division:
+          </span>
+          <button
+            type="button"
+            onClick={() => handleDivisionChange("All")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+              activeDivision === "All" || activeDivision === "all"
+                ? "bg-[#105784] text-white shadow-2xs"
+                : "bg-[#f4f7fa] text-gray-600 hover:bg-gray-200 border border-[#e2e8f0]"
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>All Divisions</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                activeDivision === "All" || activeDivision === "all"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              {products.length}
+            </span>
+          </button>
+
+          {visibleDivisions.map((div) => {
+            const isSelected = activeDivision === div.name;
+            const count = products.filter((p) => p.division === div.name).length;
+            return (
+              <button
+                key={div.id || div._id || div.name}
+                type="button"
+                onClick={() => handleDivisionChange(div.name)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isSelected
+                    ? "bg-[#105784] text-white shadow-2xs"
+                    : "bg-[#f4f7fa] text-gray-600 hover:bg-gray-200 border border-[#e2e8f0]"
+                }`}
+              >
+                {renderDivisionIcon(div.name, "w-3.5 h-3.5")}
+                <span>{div.name}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
+                    isSelected
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 2. Search Input, Status Filter & View Toggle */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search box */}
           <div className="relative flex-1 max-w-md">
@@ -392,7 +466,7 @@ export default function ProductsPage({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder={`Search ${activeDivision.toLowerCase()} by name, specs, or ID...`}
+              placeholder={`Search ${activeDivision === "All" ? "all equipment" : activeDivision.toLowerCase()} by name, specs, or ID...`}
               className="w-full pl-9 pr-3 py-2 text-xs bg-[#f8fafc] border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white transition"
             />
           </div>
@@ -401,6 +475,7 @@ export default function ProductsPage({
             {/* Status Filter Buttons */}
             <div className="flex items-center gap-1 bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0]">
               <button
+                type="button"
                 onClick={() => {
                   setStatusFilter("all");
                   setCurrentPage(1);
@@ -414,6 +489,7 @@ export default function ProductsPage({
                 All Status
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setStatusFilter("Active");
                   setCurrentPage(1);
@@ -428,6 +504,7 @@ export default function ProductsPage({
                 <span>Active ({activeCount})</span>
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setStatusFilter("Inactive");
                   setCurrentPage(1);
@@ -446,7 +523,11 @@ export default function ProductsPage({
             {/* View Mode Switcher */}
             <div className="bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0] flex items-center">
               <button
-                onClick={() => setViewMode("grid")}
+                type="button"
+                onClick={() => {
+                  setViewMode("grid");
+                  localStorage.setItem("sky_wardens_products_view", "grid");
+                }}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "grid"
                     ? "bg-white text-[#105784] shadow-2xs"
@@ -458,20 +539,101 @@ export default function ProductsPage({
                 <LayoutGrid className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => setViewMode("table")}
+                type="button"
+                onClick={() => {
+                  setViewMode("table");
+                  localStorage.setItem("sky_wardens_products_view", "table");
+                }}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "table"
                     ? "bg-white text-[#105784] shadow-2xs"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
-                title="Table View"
-                aria-label="Table View"
+                title="List / Table View"
+                aria-label="List / Table View"
               >
                 <List className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
+
+        {/* 3. Dynamic Category / Sub-line Filter Pills */}
+        {currentCategoryDefinitions.length > 0 && (
+          <div className="pt-3 border-t border-[#e2e8f0]">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1">
+                Subcategory:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory("all");
+                  setCurrentPage(1);
+                }}
+                className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer shrink-0 text-xs ${
+                  selectedCategory === "all"
+                    ? "bg-[#1c232f] text-white shadow-2xs"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                All ({currentProducts.length})
+              </button>
+              {currentCategoryDefinitions.map((cat) => {
+                const isSelected =
+                  selectedCategory === cat.id ||
+                  selectedCategory === cat.name ||
+                  selectedCategory === `${cat.number ? cat.number + '. ' : ''}${cat.name}`;
+                const catProductCount =
+                  categoryCounts[cat.id] ||
+                  categoryCounts[cat.name] ||
+                  currentProducts.filter(
+                    (p) =>
+                      p.categoryId === cat.id ||
+                      p.categoryTitle === cat.name ||
+                      p.categoryName === cat.name ||
+                      (p.categoryTitle && p.categoryTitle.toLowerCase().includes(cat.name.toLowerCase()))
+                  ).length;
+
+                return (
+                  <button
+                    key={cat.id || cat._id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory(isSelected ? "all" : (cat.id || cat.name));
+                      setCurrentPage(1);
+                    }}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer shrink-0 text-xs flex items-center gap-1.5 ${
+                      isSelected
+                        ? "bg-[#105784] text-white shadow-2xs"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200/60"
+                    }`}
+                  >
+                    <span>
+                      {(activeDivision === "All" || activeDivision === "all") && (
+                        <span className={`text-[9px] font-bold uppercase mr-1 px-1 py-0.2 rounded ${
+                          isSelected ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
+                        }`}>
+                          {cat.division === "Aerospace" ? "Aero" : "Def"}
+                        </span>
+                      )}
+                      {cat.number ? `${cat.number}. ` : ""}{cat.name}
+                    </span>
+                    <span
+                      className={`text-[10px] px-1 rounded-full font-bold ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-200/80 text-gray-600"
+                      }`}
+                    >
+                      {catProductCount}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Product Display: Grid or Table View */}
@@ -481,7 +643,7 @@ export default function ProductsPage({
             <Box className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-gray-800">
-            No {activeDivision} Products Found
+            No {activeDivision === "All" ? "Catalog" : activeDivision} Products Found
           </h3>
           <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
             No products match the selected filters or search query. You can reset
@@ -518,14 +680,14 @@ export default function ProductsPage({
               return (
                 <div
                   key={product.id || product._id || `product-grid-${pIdx}`}
-                  className={`bg-white rounded-xl border shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] hover:shadow-md transition-all flex flex-col overflow-hidden group ${
+                  className={`bg-white rounded-xl border shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all flex flex-col overflow-hidden group ${
                     isInactive
                       ? "border-amber-200 bg-amber-50/20 opacity-90"
                       : "border-[#e9ecef]"
                   }`}
                 >
-                  {/* Product Image Box */}
-                  <div className="relative aspect-4/3 bg-[#f8fafc] border-b border-[#eaedf1] overflow-hidden flex items-center justify-center p-4">
+                  {/* Product Image Box - Premium Tactical Dark Slate Frame */}
+                  <div className="relative aspect-4/3 bg-radial from-[#1e2735] via-[#141b24] to-[#0c1017] border-b border-[#232d3b] overflow-hidden flex items-center justify-center p-3">
                     <img
                       src={product.imageSrc}
                       alt={product.imageAlt || product.name}
@@ -533,16 +695,16 @@ export default function ProductsPage({
                         e.target.style.display = "none";
                         e.target.nextSibling.style.display = "flex";
                       }}
-                      className={`max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 ${
+                      className={`max-h-full max-w-full object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 ${
                         isInactive ? "grayscale-50" : ""
                       }`}
                     />
                     {/* Fallback placeholder */}
                     <div
                       style={{ display: "none" }}
-                      className="w-full h-full items-center justify-center bg-gray-100 text-gray-400"
+                      className="w-full h-full items-center justify-center text-gray-500"
                     >
-                      {renderDivisionIcon(product.division, "w-10 h-10 text-gray-300")}
+                      {renderDivisionIcon(product.division, "w-10 h-10 text-gray-500")}
                     </div>
 
                     {/* Status Badge Top Left */}
@@ -552,7 +714,7 @@ export default function ProductsPage({
                           e.stopPropagation();
                           handleToggleStatus(product);
                         }}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs transition flex items-center gap-1 cursor-pointer ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer ${
                           isInactive
                             ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
                             : "bg-emerald-600 text-white hover:bg-emerald-700"
@@ -569,20 +731,27 @@ export default function ProductsPage({
                     </div>
 
                     {/* Category Tag Top Right */}
-                    <span className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs text-[#1c232f] text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs border border-gray-200">
-                      {product.categoryTitle || product.categoryName}
+                    <span className="absolute top-2.5 right-2.5 bg-[#1c232f]/85 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border border-white/10 flex items-center gap-1 max-w-[60%] truncate">
+                      {renderDivisionIcon(product.division, "w-3 h-3 text-sky-400 shrink-0")}
+                      <span className="truncate">{product.categoryTitle || product.categoryName}</span>
                     </span>
                   </div>
 
                   {/* Product Card Body */}
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <div className="flex items-start justify-between gap-1">
-                        <h3 className="font-bold text-sm text-[#1c232f] group-hover:text-[#105784] transition-colors line-clamp-1">
-                          {product.name}
-                        </h3>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-bold text-[#105784] uppercase tracking-wider">
+                          {product.division}
+                        </span>
+                        <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.2 rounded">
+                          #{product.id}
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                      <h3 className="font-bold text-sm text-[#1c232f] group-hover:text-[#105784] transition-colors line-clamp-1 mt-0.5">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 line-clamp-2 mt-1 leading-relaxed">
                         {product.description}
                       </p>
                     </div>
@@ -593,7 +762,7 @@ export default function ProductsPage({
                         {specItems.slice(0, 2).map((item, idx) => (
                           <div
                             key={`${product.id || product._id || 'item'}-spec-${idx}`}
-                            className="bg-[#f8fafc] p-1.5 rounded border border-[#edf2f7]"
+                            className="bg-[#f8fafc] p-1.5 rounded-lg border border-[#edf2f7]"
                           >
                             <span className="text-[10px] text-gray-400 block truncate">
                               {item.label}
@@ -607,28 +776,26 @@ export default function ProductsPage({
                     )}
 
                     {/* Card Actions */}
-                    <div className="pt-2 border-t border-[#f1f4f8] flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-gray-400 truncate max-w-[80px]">
-                        #{product.id}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => setSelectedProduct(product)}
-                          className="p-1.5 text-[#105784] hover:bg-[#105784]/10 rounded border border-[#105784]/30 transition cursor-pointer"
-                          title="Inspect Technical Specs"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
+                    <div className="pt-2.5 border-t border-[#f1f4f8] flex items-center justify-between">
+                      <button
+                        onClick={() => setSelectedProduct(product)}
+                        className="text-xs font-bold text-[#105784] hover:text-[#0b3d5d] flex items-center gap-1 cursor-pointer transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Details</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setProductToEdit(product)}
-                          className="p-1.5 text-sky-700 hover:bg-sky-50 rounded border border-sky-300 transition cursor-pointer"
+                          className="p-1.5 text-gray-600 hover:text-sky-700 hover:bg-sky-50 rounded-lg border border-gray-200 transition cursor-pointer"
                           title="Edit in Side Drawer"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setProductToDelete(product)}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded border border-rose-300 transition cursor-pointer"
+                          className="p-1.5 text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-gray-200 transition cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1152,23 +1319,46 @@ function ProductFormDrawer({
   );
 
   const availableCategories = useMemo(() => {
-    return allCategories.filter((c) => c.division === division);
+    return allCategories
+      .filter((c) => c.division === division && c.status !== "Inactive")
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [allCategories, division]);
 
+  // Default to empty string for add mode so "-- Select Category --" is always the default option
   const [categoryName, setCategoryName] = useState(
     initialData?.categoryTitle ||
       initialData?.categoryName ||
-      availableCategories[0]?.name ||
-      "Tactical Systems"
+      ""
   );
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState("");
 
   const [name, setName] = useState(initialData?.name || "");
   const [id, setId] = useState(initialData?.id || "");
+
+  const slugify = (text) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/[\s_]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  };
+
+  const handleNameChange = (e) => {
+    const val = e.target.value;
+    setName(val);
+    if (mode === "add" || !initialData?.id) {
+      setId(slugify(val));
+    }
+  };
+
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
   const [imageSrc, setImageSrc] = useState(
-    initialData?.imageSrc || PRESET_IMAGES[division]?.[0]?.value || "/images/aerospace-products/arrow.png"
+    initialData?.imageSrc || ""
   );
   const [imageFileName, setImageFileName] = useState("");
   const [imageSourceMode, setImageSourceMode] = useState("upload"); // 'upload' | 'preset' | 'url'
@@ -1182,7 +1372,7 @@ function ProductFormDrawer({
     if (initialData?.details) {
       const grid = initialData.details.find((d) => d.type === "spec-grid");
       if (grid?.items?.length) {
-        return grid.items.map((it) => ({ label: it.label, value: it.value }));
+        return grid.items.map((it) => ({ label: it.label || "", value: it.value || "" }));
       }
     }
     return [];
@@ -1193,14 +1383,14 @@ function ProductFormDrawer({
 
   const handleDivisionToggle = (newDiv) => {
     setDivision(newDiv);
-    const newCats = allCategories.filter((c) => c.division === newDiv);
-    if (newCats.length > 0) {
-      setCategoryName(newCats[0]?.name || `${newDiv} Equipment`);
-    } else {
-      setCategoryName(`${newDiv} Systems`);
-    }
-    if (mode === "add" && imageSourceMode === "preset") {
-      setImageSrc(PRESET_IMAGES[newDiv]?.[0]?.value || "/images/aerospace-products/arrow.png");
+    // Always reset category selection to default placeholder when switching division
+    setCategoryName("");
+    setIsCustomCategory(false);
+    setCustomCategoryInput("");
+    setErrorMsg("");
+    if (imageSourceMode === "preset") {
+      setImageSrc(PRESET_IMAGES[newDiv]?.[0]?.value || "");
+      setImageFileName(PRESET_IMAGES[newDiv]?.[0]?.label || "");
     }
   };
 
@@ -1278,31 +1468,102 @@ function ProductFormDrawer({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setErrorMsg("Product name is required.");
+    setErrorMsg("");
+
+    // 1. Mandatory Target Division check
+    if (!division || !division.trim()) {
+      setErrorMsg("Target Division is required.");
       return;
     }
 
-    const cleanCatName = categoryName.trim() || `${division} Systems`;
-    const cleanCatId = cleanCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    // 2. Mandatory Product Name check & sanitization
+    const sanitizedName = name.trim();
+    if (!sanitizedName) {
+      setErrorMsg("Product Name is required.");
+      return;
+    }
+    if (sanitizedName.length < 2) {
+      setErrorMsg("Product Name must be at least 2 characters.");
+      return;
+    }
+    if (sanitizedName.length > 120) {
+      setErrorMsg("Product Name must not exceed 120 characters.");
+      return;
+    }
 
-    const validSpecs = specs.filter(
-      (s) => s.label.trim() !== "" && s.value.trim() !== ""
+    // 3. Mandatory Category / Subcategory check
+    const finalCategoryName = (
+      isCustomCategory ? customCategoryInput : categoryName
+    ).trim();
+
+    if (!finalCategoryName) {
+      setErrorMsg("Please select a Category / Subcategory.");
+      return;
+    }
+
+    // Resolve Category ID and Display Title
+    const matchedCat = availableCategories.find(
+      (c) =>
+        c.name.toLowerCase() === finalCategoryName.toLowerCase() ||
+        c.id.toLowerCase() === finalCategoryName.toLowerCase()
     );
 
+    const cleanCatId =
+      matchedCat?.id ||
+      finalCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const cleanCatName = matchedCat?.name || finalCategoryName;
+    const cleanCatTitle = matchedCat
+      ? matchedCat.number
+        ? `${matchedCat.number}. ${matchedCat.name}`
+        : matchedCat.name
+      : finalCategoryName;
+
+    // 4. Sanitize Optional Product ID / SKU Slug
+    let cleanId = undefined;
+    if (id.trim()) {
+      cleanId = id
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    // 5. Mandatory Product Image resolution & fallback
+    let finalImageSrc = imageSrc.trim();
+    if (!finalImageSrc) {
+      if (imageSourceMode === "preset" && PRESET_IMAGES[division]?.[0]?.value) {
+        finalImageSrc = PRESET_IMAGES[division][0].value;
+      } else {
+        finalImageSrc =
+          division === "Aerospace"
+            ? "/images/aerospace-products/arrow.png"
+            : "/images/2. Defence Page/Abhedya-Level-III-Helmet.png";
+      }
+    }
+
+    // 6. Sanitize Optional Description
+    const sanitizedDesc = description.trim();
+
+    // 7. Sanitize Optional Specifications
+    const validSpecs = specs
+      .map((s) => ({ label: s.label.trim(), value: s.value.trim() }))
+      .filter((s) => s.label !== "" || s.value !== "");
+
+    const incompleteSpec = validSpecs.find((s) => !s.label || !s.value);
+    if (incompleteSpec) {
+      setErrorMsg("All added technical specification rows must include both a Parameter Name and a Value.");
+      return;
+    }
+
     const productPayload = {
-      id: id.trim() || undefined,
-      name: name.trim(),
-      description: description.trim() || `${name} engineered for tactical defence readiness.`,
-      imageSrc:
-        imageSrc.trim() ||
-        (division === "Aerospace"
-          ? "/images/aerospace-products/arrow.png"
-          : "/images/2. Defence Page/Abhedya-Level-III-Helmet.png"),
-      imageAlt: name.trim(),
+      id: cleanId,
+      name: sanitizedName,
+      description: sanitizedDesc || `${sanitizedName} engineered for tactical defence readiness.`,
+      imageSrc: finalImageSrc,
+      imageAlt: sanitizedName,
       division,
       categoryId: cleanCatId,
-      categoryTitle: cleanCatName,
+      categoryTitle: cleanCatTitle,
       categoryName: cleanCatName,
       status,
       details: [
@@ -1313,7 +1574,7 @@ function ProductFormDrawer({
         {
           type: "text",
           title: "Overview",
-          body: description.trim() || `${name} tactical specification profile.`,
+          body: sanitizedDesc || `${sanitizedName} tactical specification profile.`,
         },
       ],
     };
@@ -1405,7 +1666,7 @@ function ProductFormDrawer({
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={handleNameChange}
                   required
                   placeholder="e.g. Garuda UAV / Vajra Armor"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
@@ -1413,15 +1674,21 @@ function ProductFormDrawer({
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Product ID / SKU Slug
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                    Product ID / Slug
+                  </label>
+                  <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1 bg-gray-100 px-1.5 py-0.5 rounded">
+                    <span>🔒</span> Auto-generated
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={id}
-                  onChange={(e) => setId(e.target.value)}
-                  placeholder="Auto-generated if empty"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white font-mono text-xs transition"
+                  disabled
+                  readOnly
+                  placeholder="Auto-generated from name"
+                  className="w-full px-3 py-2 bg-gray-100/90 text-gray-600 border border-gray-200 rounded-lg font-mono text-xs cursor-not-allowed select-none"
                 />
               </div>
             </div>
@@ -1430,21 +1697,58 @@ function ProductFormDrawer({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Category / Sub-Line *
+                  Category / Subcategory *
                 </label>
-                <input
-                  type="text"
-                  list="drawer-category-suggestions"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="e.g. UAV Systems / Ballistic Protection"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-                />
-                <datalist id="drawer-category-suggestions">
+                <select
+                  value={isCustomCategory ? "__custom__" : categoryName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "__custom__") {
+                      setIsCustomCategory(true);
+                      setCategoryName("");
+                    } else {
+                      setIsCustomCategory(false);
+                      setCategoryName(val);
+                    }
+                    setErrorMsg("");
+                  }}
+                  className={`w-full px-3 py-2 bg-[#f8fafc] border rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition cursor-pointer ${
+                    !categoryName && !isCustomCategory
+                      ? "text-gray-400 border-gray-300"
+                      : "text-gray-900 border-gray-200 font-medium"
+                  }`}
+                >
+                  <option value="" disabled className="text-gray-400">
+                    -- Select Category --
+                  </option>
                   {availableCategories.map((cat) => (
-                    <option key={cat.id} value={cat.name} />
+                    <option key={cat.id || cat._id} value={cat.name} className="text-gray-900 font-normal">
+                      {cat.number ? `${cat.number}. ` : ""}{cat.name}
+                    </option>
                   ))}
-                </datalist>
+                  <option value="__custom__" className="text-[#105784] font-semibold">
+                    + Enter Custom Category...
+                  </option>
+                </select>
+
+                {isCustomCategory && (
+                  <div className="mt-2 space-y-1">
+                    <input
+                      type="text"
+                      value={customCategoryInput}
+                      onChange={(e) => {
+                        setCustomCategoryInput(e.target.value);
+                        setErrorMsg("");
+                      }}
+                      placeholder="Enter custom subcategory title..."
+                      required
+                      className="w-full px-3 py-2 bg-[#f8fafc] border border-[#105784] rounded-lg focus:outline-none focus:bg-white text-xs transition"
+                    />
+                    <p className="text-[10px] text-gray-400">
+                      Type custom subcategory title to save under {division}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
