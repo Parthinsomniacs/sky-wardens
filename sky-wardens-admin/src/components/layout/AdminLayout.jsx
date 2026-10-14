@@ -245,14 +245,9 @@ export default function AdminLayout({
         </div>
 
         {/* Sidebar Nav Items */}
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           {navGroups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1">
-              {sidebarOpen && (
-                <p className="px-3 text-[10px] font-bold text-[#6c7b93] tracking-wider uppercase mb-1.5 select-none">
-                  {group.group}
-                </p>
-              )}
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
