@@ -1,0 +1,465 @@
+/* ==========================================================================
+   JOB APPLICATION MODAL - COMPONENT SCOPED STYLES
+   Adheres to AGENTS.md rules: 0 !important, modular, responsive, accessible.
+   ========================================================================== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(3, 6, 15, 0.84);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 2.5vw, 2rem);
+  box-sizing: border-box;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalDialog {
+  position: relative;
+  width: 100%;
+  max-width: 980px;
+  max-height: min(92vh, 880px);
+  background: radial-gradient(
+    140% 120% at 50% 0%,
+    rgba(16, 22, 36, 0.98) 0%,
+    rgba(8, 11, 20, 0.99) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md, 16px);
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.85),
+              0 0 40px -10px rgba(16, 87, 132, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Close Button */
+.closeButton {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 20;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Modal Body Layout (Single Column Form) */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(77, 217, 255, 0.45) rgba(255, 255, 255, 0.04);
+}
+
+.modalBody::-webkit-scrollbar {
+  width: 7px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: rgba(77, 217, 255, 0.45);
+  border-radius: 4px;
+}
+
+.columnHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-right: 3rem;
+}
+
+.columnTitle {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent-strong, #4dd9ff);
+}
+
+.columnSubtitle {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 0.84375rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #a3a3a3);
+}
+
+.formColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.formFieldFull {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fieldLabel {
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-dim, #a8a8af);
+}
+
+.fieldLabel span {
+  color: var(--color-accent-strong, #4dd9ff);
+}
+
+.textInput {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  width: 100%;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--color-accent-strong, #4dd9ff);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.textInput::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.textArea {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  width: 100%;
+  resize: vertical;
+  min-height: 85px;
+}
+
+.textArea:focus {
+  outline: none;
+  border-color: var(--color-accent-strong, #4dd9ff);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.textArea::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* Resume File Dropzone */
+.fileDropzone {
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.015);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.fileDropzone:hover {
+  border-color: var(--color-accent-strong, #4dd9ff);
+  background: rgba(77, 217, 255, 0.03);
+}
+
+.fileDropzoneActive {
+  border-color: var(--color-accent-strong, #4dd9ff);
+  background: rgba(77, 217, 255, 0.06);
+}
+
+.fileIcon {
+  color: var(--color-accent-strong, #4dd9ff);
+}
+
+.filePrompt {
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text, #ffffff);
+}
+
+.fileSubprompt {
+  font-family: var(--font-primary);
+  font-size: 0.71875rem;
+  color: var(--color-text-dim, #a8a8af);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.fileSelectedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(77, 217, 255, 0.1);
+  border: 1px solid rgba(77, 217, 255, 0.3);
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+}
+
+.removeFileBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.removeFileBtn:hover {
+  color: #ffffff;
+}
+
+/* Agreement Checkbox */
+.agreementRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  accent-color: var(--color-accent-strong, #4dd9ff);
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.agreementText {
+  font-family: var(--font-primary);
+  font-size: 0.78125rem;
+  line-height: 1.45;
+  color: var(--color-text-dim, #a8a8af);
+}
+
+/* Submit Button */
+.submitButton {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: var(--color-accent);
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.85rem 1.85rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--color-accent);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: #0c4366;
+  border-color: var(--color-accent-strong, #4dd9ff);
+  box-shadow: 0 4px 18px rgba(16, 87, 132, 0.4);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success Banner State */
+.successCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(2rem, 4vw, 3.5rem) clamp(1rem, 2vw, 2rem);
+  gap: 1.25rem;
+}
+
+.successIconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(85, 241, 135, 0.1);
+  border: 1px solid rgba(85, 241, 135, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #55f187;
+}
+
+.successTitle {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.referenceBadge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  color: var(--color-accent-strong, #4dd9ff);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.successDescription {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 0.90625rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #a3a3a3);
+  max-width: 48ch;
+}
+
+.nextStepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+}
+
+.nextStepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nextStepCheck {
+  color: #55f187;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.dismissBtn {
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.65rem 1.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dismissBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}

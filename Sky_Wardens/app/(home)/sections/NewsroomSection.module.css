@@ -1,0 +1,329 @@
+.section {
+  position: relative;
+  background-color: #0c0d10;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 70px 0 80px 0;
+}
+
+.inner {
+  position: relative;
+  margin: 0 var(--layout-margin);
+  padding: 0 var(--layout-padding);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+  .section {
+    padding: 40px 0;
+  }
+
+  .inner {
+    margin: 0;
+    padding: 0 clamp(1rem, 3vw, var(--layout-padding));
+  }
+}
+
+/* ========================================
+   SECTION HEADER (MATCHING IMAGE 1)
+======================================== */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 2.25rem;
+}
+
+.pillBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  margin: 0 0 1rem 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 6.25vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  margin: 0;
+  max-width: 620px;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-primary);
+  font-size: clamp(1rem, 1.3vw, 1.15rem);
+  line-height: 1.5;
+}
+
+/* ========================================
+   BENTO GRID (5 CARDS ASYMMETRIC)
+======================================== */
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(1rem, 1.5vw, 1.5rem);
+  grid-auto-rows: minmax(300px, auto);
+}
+
+@media (max-width: 1024px) {
+  .bentoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(280px, auto);
+  }
+}
+
+@media (max-width: 680px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* ========================================
+   CARD BASE STYLING
+======================================== */
+.card {
+  position: relative;
+  border-radius: 24px;
+  background-color: #111216;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
+  will-change: transform, border-color;
+}
+
+.card:hover {
+  border-color: rgba(154, 240, 255, 0.45);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(154, 240, 255, 0.15);
+  transform: translateY(-3px);
+}
+
+/* Background image & overlays */
+.imageWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.cardBgImage {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+}
+
+.card:hover .cardBgImage {
+  transform: scale(1.05);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 13, 16, 0.2) 0%,
+    rgba(12, 13, 16, 0.75) 55%,
+    rgba(12, 13, 16, 0.96) 100%
+  );
+  pointer-events: none;
+}
+
+/* Content Container inside each card */
+.content {
+  position: relative;
+  z-index: 3;
+  padding: clamp(1.25rem, 2vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Top metadata row inside card */
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.sectorBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cardDate {
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+}
+
+.cardHeadline {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: clamp(1.2rem, 1.6vw, 1.55rem);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.cardExcerpt {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+
+  /* Hidden by default, revealed on hover */
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(8px);
+  transition: max-height 0.4s ease, opacity 0.35s ease, transform 0.4s ease;
+}
+
+.card:hover .cardExcerpt,
+.card:focus-visible .cardExcerpt {
+  max-height: 8rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  /* Hidden by default, revealed on hover */
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  transform: translateY(8px);
+  transition: max-height 0.4s ease, opacity 0.35s ease, transform 0.4s ease,
+    margin-top 0.4s ease, color 0.3s ease;
+}
+
+.card:hover .cardFooter,
+.card:focus-visible .cardFooter {
+  max-height: 3rem;
+  opacity: 1;
+  margin-top: 0.65rem;
+  color: var(--color-accent);
+}
+
+.arrowIcon {
+  width: 12px;
+  height: 12px;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .arrowIcon {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   INDIVIDUAL BENTO CARD GRID SPANS
+======================================== */
+
+/* Card 1: Top-left wide (span 7) */
+.card1 {
+  grid-column: span 7;
+  min-height: 360px;
+}
+
+/* Card 2: Top-right compact (span 5) */
+.card2 {
+  grid-column: span 5;
+  min-height: 360px;
+}
+
+/* Card 3: Bottom-left tall vertical (span 5, row span 2) */
+.card3 {
+  grid-column: span 5;
+  grid-row: span 2;
+  min-height: 640px;
+}
+
+/* Card 4: Bottom-right top wide (span 7) */
+.card4 {
+  grid-column: span 7;
+  min-height: 310px;
+}
+
+/* Card 5: Bottom-right bottom wide (span 7) */
+.card5 {
+  grid-column: span 7;
+  min-height: 400px;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1024px) {
+  .card1,
+  .card2,
+  .card3,
+  .card4,
+  .card5 {
+    grid-column: span 1;
+    grid-row: auto;
+    min-height: 340px;
+  }
+
+  .card3 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 680px) {
+  .card1,
+  .card2,
+  .card3,
+  .card4,
+  .card5 {
+    grid-column: span 1;
+    grid-row: auto;
+    min-height: 300px;
+  }
+}

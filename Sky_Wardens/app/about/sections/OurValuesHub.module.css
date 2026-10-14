@@ -1,0 +1,406 @@
+/* ==========================================================================
+   OUR VALUES INTERACTIVE HUB - MIRACH AEROSPACE REFERENCE MATCH
+   ========================================================================== */
+
+.valuesWrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 4.5rem;
+  box-sizing: border-box;
+}
+
+.verticalLine {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.pinContainer {
+  position: relative;
+  width: 100%;
+  max-width: 1478px;
+  margin: 0 auto;
+  min-height: 580px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   CENTER TACTICAL RADAR & CIRCUIT GRAPHIC
+   ======================================== */
+
+.centerGraphicBox {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  max-width: 1478px;
+  max-height: 536px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.radarSvg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.circuitSvg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mainSvgPath {
+  vector-effect: non-scaling-stroke;
+}
+
+.mainSvgDecorate {
+  transition: opacity 0.3s ease;
+}
+
+.circuitPath {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1.4;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.centerOrb {
+  position: absolute;
+  left: 50.3%;
+  top: 48.2%;
+  transform: translate(-50%, -50%);
+  width: 14.3%;
+  max-width: 195px;
+  min-width: 135px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 40%, var(--color-accent-strong) 0%, #134e66 52%, #061b24 100%);
+  border: 1px solid rgba(154, 240, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: clamp(1.15rem, 1.8vw, 1.7rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-align: center;
+  pointer-events: auto;
+  user-select: none;
+  z-index: 5;
+  box-shadow: 0 0 55px rgba(154, 240, 255, 0.4), inset 0 0 25px rgba(154, 240, 255, 0.35);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.centerOrb:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 0 75px rgba(154, 240, 255, 0.65), inset 0 0 35px rgba(154, 240, 255, 0.5);
+}
+
+/* ========================================
+   4 CARDS GRID
+   ======================================== */
+
+.cardsGrid {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  row-gap: 5.5rem;
+  column-gap: 4rem;
+  box-sizing: border-box;
+}
+
+.valueCard {
+  position: relative;
+  background: linear-gradient(
+    249deg,
+    rgba(255, 255, 255, 0.03) 39.75%,
+    rgba(255, 255, 255, 0.16) 97.22%
+  );
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 1.75rem 2rem;
+  max-width: 440px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: transform 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+}
+
+.valueCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(154, 240, 255, 0.45);
+  background: linear-gradient(
+    249deg,
+    rgba(255, 255, 255, 0.06) 39.75%,
+    rgba(255, 255, 255, 0.22) 97.22%
+  );
+}
+
+.topLeftCard {
+  justify-self: start;
+}
+
+.topRightCard {
+  justify-self: end;
+}
+
+.bottomLeftCard {
+  justify-self: start;
+}
+
+.bottomRightCard {
+  justify-self: end;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.cardIconWrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cardIndex {
+  font-family: var(--font-primary);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #c3c3c3;
+  letter-spacing: 0.05em;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 1.625rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.cardDescription {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #c3c3c3;
+  font-weight: 400;
+}
+
+/* ==========================================================================
+   RESPONSIVE LADDER (Strict compliance with .kiro/steering/responsive.md)
+   Target breakpoints: 1799 -> 1599 -> 1408 -> 1216 -> 1024 -> 768 -> 575 -> 480 -> 420 -> 360
+   ========================================================================== */
+
+@media (max-width: 1799px) {
+  .pinContainer {
+    max-width: 1360px;
+  }
+
+  .valueCard {
+    max-width: 420px;
+    padding: 1.6rem 1.85rem;
+  }
+}
+
+@media (max-width: 1599px) {
+  .pinContainer {
+    max-width: 1240px;
+  }
+
+  .cardsGrid {
+    row-gap: 4.5rem;
+    column-gap: 3rem;
+  }
+
+  .valueCard {
+    max-width: 390px;
+    padding: 1.5rem 1.75rem;
+  }
+
+  .cardTitle {
+    font-size: 1.5rem;
+  }
+}
+
+/* Font reduction starts here per responsive.md rules */
+@media (max-width: 1408px) {
+  .pinContainer {
+    max-width: 1120px;
+  }
+
+  .valueCard {
+    max-width: 360px;
+    padding: 1.35rem 1.5rem;
+  }
+
+  .cardTitle {
+    font-size: 1.35rem;
+  }
+
+  .cardDescription {
+    font-size: 0.9375rem;
+  }
+
+  .cardIconWrapper {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 1216px) {
+  .pinContainer {
+    max-width: 980px;
+  }
+
+  .cardsGrid {
+    row-gap: 3.5rem;
+    column-gap: 2rem;
+  }
+
+  .valueCard {
+    max-width: 330px;
+    padding: 1.25rem 1.35rem;
+  }
+
+  .cardTitle {
+    font-size: 1.25rem;
+  }
+
+  .cardDescription {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .valuesWrapper {
+    margin-top: 3.5rem;
+  }
+
+  .verticalGuideline {
+    display: none;
+  }
+
+  .pinContainer {
+    display: block;
+    min-height: auto;
+  }
+
+  .centerGraphicBox {
+    display: none;
+  }
+
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 2rem;
+    column-gap: 2rem;
+  }
+
+  .topLeftCard,
+  .topRightCard,
+  .bottomLeftCard,
+  .bottomRightCard {
+    justify-self: stretch;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .valueCard {
+    padding: 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .valueCard {
+    max-width: 100%;
+    padding: 1.35rem 1.25rem;
+  }
+
+  .cardTitle {
+    font-size: 1.15rem;
+  }
+
+  .cardDescription {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .valuesWrapper {
+    margin-top: 3rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .cardTitle {
+    font-size: 1.05rem;
+  }
+
+  .cardDescription {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .valueCard {
+    padding: 1.15rem 1rem;
+  }
+
+  .cardTitle {
+    font-size: 1rem;
+  }
+}

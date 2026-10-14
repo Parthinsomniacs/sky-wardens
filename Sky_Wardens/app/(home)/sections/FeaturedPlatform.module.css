@@ -1,0 +1,169 @@
+.section {
+  position: relative;
+  background-color: var(--color-surface-deep);
+}
+
+/* Pinned viewport-height stage. Scroll distance is created by the pin, so
+   the canvas stays fixed while the frame sequence scrubs. */
+.stage {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Full-bleed sequence canvas wrapper. */
+.canvasWrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sequence canvas inside wrapper. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.45;
+}
+
+/* Scrim between the canvas and the caption to lift text contrast. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(12, 13, 16, 0.35) 0%,
+    rgba(12, 13, 16, 0.6) 100%
+  );
+}
+
+/* ========================================
+   INTRO CAPTION (centered)
+======================================== */
+.intro {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  padding: 0 var(--layout-padding);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eyebrow {
+  display: inline-block;
+  color: #ffffff;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-display), "Arial Black", Impact, sans-serif;
+  font-size: clamp(2.25rem, 4.4vw, 4.25rem);
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.subline {
+  margin: 1rem 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ========================================
+   RESPONSIVE
+   Breakpoints: 1408 · 1024 · 768 · 575 · 360
+   (other sizes handled by the fluid clamp/vw values above)
+======================================== */
+@media (max-width: 1408px) {
+  .title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+  }
+}
+
+@media (max-width: 1024px) {
+  .subline {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stage {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 0;
+  }
+
+  .intro {
+    position: relative;
+    z-index: 2;
+    padding: 0 var(--layout-padding);
+    margin-bottom: 24px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .canvasWrapper {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+
+  .canvas {
+    opacity: 1;
+  }
+
+  .scrim {
+    display: none;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .title {
+    font-size: clamp(1.75rem, 6vw, 2.5rem);
+    line-height: 1.5;
+  }
+
+  .subline {
+    font-size: 0.9375rem;
+    margin-top: 0.75rem;
+  }
+}
+
+@media (max-width: 575px) {
+  .subline {
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .eyebrow {
+    font-size: 0.6875rem;
+  }
+}

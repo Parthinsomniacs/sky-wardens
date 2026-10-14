@@ -1,0 +1,495 @@
+/* ==========================================================================
+   DIGITAL EXCELLENCE / CAPABILITIES SHOWCASE SECTION
+   Matching Awwwards-style Typography Focus & Blur Pill Interaction
+   With Expandable Detail Panel (Full Width Container Layout)
+   ========================================================================== */
+
+.section {
+  position: relative;
+  background-color: #0c0d10;
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+  color: #ffffff;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+  box-sizing: border-box;
+}
+
+.inner {
+  position: relative;
+  width: auto;
+  margin: 0 var(--layout-margin);
+  padding: 120px var(--layout-padding);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   EYEBROW IN BRACKETS (THEME BLUE)
+   ======================================== */
+
+.eyebrow {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  margin-bottom: 3.5rem;
+  line-height: 1.6;
+  user-select: none;
+}
+
+.eyebrowLine {
+  display: block;
+}
+
+/* ========================================
+   MAIN TYPOGRAPHY LIST
+   ======================================== */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.itemWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.itemWrapper:focus-visible {
+  outline: 2px solid var(--color-accent);
+  border-radius: 8px;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4.8vw, 72px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #ffffff;
+  white-space: nowrap;
+  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  text-align: center;
+}
+
+/* Depth Gaussian Blur when active / hovered / expanded */
+.titleBlurred {
+  color: var(--color-accent);
+  filter: blur(5px);
+  opacity: 0.8;
+  transform: scale(0.99);
+}
+
+/* Floating Center Pill Badge */
+.pillBadge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  background-color: #ffffff;
+  color: #0c0d10;
+  font-family: var(--font-primary);
+  font-size: clamp(0.85rem, 1.15vw, 1.05rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0.6rem 1.6rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  opacity: 1;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease;
+}
+
+.pillBadgeHidden {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.85);
+  pointer-events: none;
+}
+
+/* ========================================
+   DETAIL EXPANDED PANEL (LEFT IMAGE + RIGHT CONTENT)
+   ======================================== */
+
+.detailPanel {
+  width: 100%;
+  margin-top: 4.5rem;
+  padding-top: 4.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  box-sizing: border-box;
+  animation: slideInDetail 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInDetail {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 4.5rem;
+  align-items: stretch;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Left Column: Image Card */
+.detailLeftCol {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.imageCard {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  height: 100%;
+  min-height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+  box-sizing: border-box;
+}
+
+.detailImage {
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.imageCard:hover .detailImage {
+  transform: scale(1.03);
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 60%,
+    rgba(0, 0, 0, 0.45) 100%
+  );
+  pointer-events: none;
+}
+
+/* Right Column: Heading & Content */
+.detailRightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.headingBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detailEyebrow {
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.detailHeading {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: clamp(1.85rem, 2.5vw, 2.65rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: #ffffff;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.paragraphsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detailParagraph {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 400;
+  overflow-wrap: break-word;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 1216px) {
+  .inner {
+    padding: 100px var(--layout-padding);
+  }
+
+  .eyebrow {
+    margin-bottom: 3rem;
+  }
+
+  .title {
+    font-size: clamp(2.2rem, 4.8vw, 62px);
+  }
+
+  .detailGrid {
+    gap: 3.5rem;
+  }
+
+  .imageCard {
+    min-height: 440px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    padding: 90px 24px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .detailPanel {
+    margin-top: 3.5rem;
+    padding-top: 3.5rem;
+  }
+
+  .detailGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+  }
+
+  .detailLeftCol {
+    height: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .imageCard {
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    aspect-ratio: 16 / 9;
+  }
+
+  .detailHeading {
+    font-size: clamp(1.65rem, 3vw, 2.2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: 80px 20px;
+    margin: 0;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    margin-bottom: 2.5rem;
+  }
+
+  .list {
+    gap: 1.5rem;
+  }
+
+  .itemWrapper {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .title {
+    font-size: clamp(1.25rem, 4.5vw, 1.85rem);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .titleBlurred {
+    filter: blur(3.5px);
+  }
+
+  .pillBadge {
+    padding: 0.45rem 1.15rem;
+    font-size: clamp(0.72rem, 2.2vw, 0.85rem);
+    white-space: nowrap;
+    max-width: 94vw;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .detailPanel {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+  }
+
+  .detailGrid {
+    gap: 1.75rem;
+  }
+
+  .imageCard {
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+  }
+
+  .detailEyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+  }
+
+  .detailHeading {
+    font-size: clamp(1.35rem, 5vw, 1.7rem);
+    line-height: 1.35;
+  }
+
+  .paragraphsBlock {
+    gap: 1.25rem;
+  }
+
+  .detailParagraph {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+  }
+}
+
+@media (max-width: 480px) {
+  .inner {
+    padding: 60px 16px;
+  }
+
+  .eyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 2rem;
+  }
+
+  .list {
+    gap: 1.35rem;
+  }
+
+  .itemWrapper {
+    padding: 0.65rem 0.25rem;
+  }
+
+  .title {
+    font-size: clamp(1.05rem, 4.2vw, 1.35rem);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.45;
+  }
+
+  .pillBadge {
+    padding: 0.38rem 0.85rem;
+    font-size: clamp(0.64rem, 2.7vw, 0.75rem);
+    white-space: nowrap;
+    max-width: 95vw;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .detailPanel {
+    margin-top: 2rem;
+    padding-top: 2rem;
+  }
+
+  .detailGrid {
+    gap: 1.5rem;
+  }
+
+  .imageCard {
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+  }
+
+  .detailEyebrow {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+  }
+
+  .detailHeading {
+    font-size: clamp(1.2rem, 5.5vw, 1.45rem);
+    line-height: 1.35;
+  }
+
+  .paragraphsBlock {
+    gap: 1.15rem;
+  }
+
+  .detailParagraph {
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .pillBadge,
+  .detailPanel,
+  .detailImage {
+    transition: none;
+    animation: none;
+  }
+
+  .titleBlurred {
+    filter: none;
+    opacity: 0.85;
+  }
+}

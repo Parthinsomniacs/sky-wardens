@@ -1,0 +1,232 @@
+.section {
+  position: relative;
+  background-color: var(--color-surface-deep);
+  color: var(--color-text);
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.inner {
+  margin: 0 var(--layout-margin);
+  padding: 100px var(--layout-padding);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 4.5vw, 4rem);
+}
+
+/* ========================================
+   SECTION HEADER (Centered across top)
+   ======================================== */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.headerEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+}
+
+.sectionTitle {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 4.5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  text-transform: uppercase;
+}
+
+.titleLine {
+  display: block;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* ========================================
+   PROGRAMS LIST & ITEM WRAPPER
+   ======================================== */
+.programsList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4rem, 7vw, 6.5rem);
+  width: 100%;
+}
+
+.itemWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2.5rem, 5vw, 5.5rem);
+  align-items: center;
+}
+
+/* ========================================
+   LEFT COLUMN IMAGE (Rounded card)
+   ======================================== */
+.imageWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-md, 16px);
+  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.image {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.imageWrap:hover .image {
+  transform: scale(1.03);
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 13, 16, 0.05) 0%,
+    rgba(12, 13, 16, 0.3) 100%
+  );
+  pointer-events: none;
+}
+
+/* ========================================
+   RIGHT COLUMN CONTENT
+   ======================================== */
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: clamp(2.25rem, 3.8vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.textList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.paragraph {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: clamp(0.9375rem, 1.05vw, 1.0625rem);
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+/* ========================================
+   RESPONSIVE LADDER
+   ======================================== */
+@media (max-width: 1216px) {
+  .inner {
+    padding: 90px var(--layout-padding);
+  }
+
+  .grid {
+    gap: 3.5rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    margin: 0;
+    padding: 70px 24px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .imageWrap {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: 60px 20px;
+  }
+
+  .titleLine {
+    white-space: normal;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .paragraph {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}
+
+@media (max-width: 575px) {
+  .inner {
+    padding: 50px 16px;
+  }
+
+  .title {
+    font-size: 1.85rem;
+  }
+
+  .imageWrap {
+    border-radius: 12px;
+  }
+
+  .paragraph {
+    font-size: 0.9375rem;
+  }
+}

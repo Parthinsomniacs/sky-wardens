@@ -1,0 +1,204 @@
+.hero {
+  position: relative;
+  /* Cancel the layout's header offset so the hero sits full-bleed
+     behind the fixed header, while keeping content below it. */
+  margin-top: calc(-1 * var(--header-height));
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background-color: var(--color-surface-deep);
+  box-sizing: border-box;
+}
+
+/* Background image & gradient overlay */
+.bgWrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bgVideo {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  object-position: 50% 50%;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 13, 16, 0.15) 0%,
+    rgba(12, 13, 16, 0.35) 55%,
+    rgba(12, 13, 16, 0.88) 85%,
+    rgba(12, 13, 16, 0.98) 100%
+  );
+}
+
+/* Subtle Vertical Guidelines */
+.gridLines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 var(--layout-margin);
+}
+
+@media (max-width: 1024px) {
+  .gridLines {
+    margin: 0;
+  }
+}
+
+.gridColumn {
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  height: 100%;
+}
+
+.gridColumn:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Content Container */
+.inner {
+  position: relative;
+  z-index: 10;
+  margin: 0 var(--layout-margin);
+  padding: var(--layout-padding);
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    margin: 0;
+    padding: 40px clamp(1rem, 3vw, 30px);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .content {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: flex-end;
+    gap: 4rem;
+  }
+}
+
+/* --- Bottom Left Info & CTA --- */
+.leftBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 480px;
+  padding-bottom: 0.5rem;
+}
+
+.squareIndicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-text);
+  display: block;
+}
+
+.headline {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: clamp(1.125rem, 1.35vw, 1.4rem);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Shrink hero CTA buttons on smaller phones without affecting other pages */
+@media (max-width: 575px) {
+  .buttonGroup > a,
+  .buttonGroup > button {
+    height: 3rem;
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .buttonGroup > a,
+  .buttonGroup > button {
+    height: 2.75rem;
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* --- Bottom Right Tagline & AGENCY Title --- */
+.rightBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1.75rem, 3vw, 2.75rem);
+}
+
+@media (min-width: 1024px) {
+  .rightBlock {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+.tagline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  font-family: var(--font-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: 0.02em;
+}
+
+.slash {
+  color: var(--color-text);
+  font-weight: 700;
+  opacity: 0.7;
+  letter-spacing: -0.05em;
+  user-select: none;
+}
+
+.heroTitle {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.35rem, 7.2vw, 7.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+}

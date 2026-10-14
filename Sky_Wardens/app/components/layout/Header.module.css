@@ -1,0 +1,654 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 300;
+  background-color: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.headerScrolled {
+  background-color: rgba(18, 18, 18, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-border-subtle);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+.headerOpen {
+  background-color: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 310;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 var(--layout-margin);
+  padding: 20px var(--layout-padding);
+  transition: padding 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.headerScrolled .inner {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+/* --- Brand / Logo --- */
+.brand {
+  position: relative;
+  z-index: 320;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.logoIcon {
+  width: auto;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.logoText {
+  width: auto;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+/* --- Right Actions: 2 Separate Buttons (LETS TALK + Hamburger) --- */
+.actions {
+  position: relative;
+  z-index: 320;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* Minor space between the 2 buttons */
+}
+
+.menuButton {
+  position: relative;
+  display: inline-flex;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  background-color: #ffffff;
+  border: 0;
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Full-width bar; top and bottom are half-width and aligned to opposite edges. */
+.menuBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background-color: var(--color-surface-deep);
+  border-radius: 2px;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease;
+}
+
+/* Top: right-aligned, 50% width */
+.menuBarTop {
+  transform-origin: center;
+  transform: translate(0%, -6px);
+  width: 12px;
+}
+
+/* Middle: full width */
+.menuBarMid {
+  transform: translate(-50%, -50%);
+  width: 18px;
+}
+
+/* Bottom: left-aligned, 50% width */
+.menuBarBot {
+  transform: translate(-100%, 4px);
+  width: 9px;
+}
+
+/* Active: top & bottom grow to full width and cross into an X; middle fades. */
+.menuButtonActive .menuBarTop {
+  width: 18px;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.menuButtonActive .menuBarMid {
+  opacity: 0;
+}
+
+.menuButtonActive .menuBarBot {
+  width: 18px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+/* --- Navigation Panel / Overlay (slides down from the top) --- */
+/* Visibility, backdrop and slide are animated with GSAP (see Header.tsx). */
+.overlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.overlayOpen {
+  pointer-events: auto;
+}
+
+.drawer {
+  background-color: #292929;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  /* Background starts at top:0, but content sits below the header (80px). */
+  padding: calc(var(--header-height) + clamp(1rem, 2vw, 1.5rem))
+    clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* Layout: navigation on the left, contact card on the right. */
+.drawerBody {
+  display: flex;
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: stretch;
+}
+
+.drawerNav {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2.5rem;
+}
+
+.drawerContent {
+  width: 100%;
+  max-width: 640px;
+  padding: 1rem 0 0;
+}
+
+/* Social links row (bottom-left of the menu). */
+.socialRow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.socialItem {
+  display: inline-flex;
+  align-items: center;
+}
+
+.socialItem:not(:last-child)::after {
+  content: "/";
+  margin-left: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.socialLink {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.socialLink:hover {
+  color: var(--color-accent-strong);
+}
+
+/* --- Contact card (right side) --- */
+.contactCard {
+  flex-shrink: 0;
+  /* Scales with the viewport and stays proportional to the nav column,
+     so the drawer composition remains balanced from 1216px to 1799px. */
+  width: clamp(420px, 44vw, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: #ffffff;
+}
+
+.contactImages {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.contactImage {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.contactBody {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.contactText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.contactEyebrow {
+  margin: 0;
+  color: #0aa6c9;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.contactDesc {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--color-surface-deep);
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  line-height: 1.5;
+}
+
+.contactArrow {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background-color: var(--color-accent);
+  color: #ffffff;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
+}
+
+.contactArrow:hover {
+  transform: translate(2px, -2px);
+  background-color: var(--color-accent-strong);
+}
+
+.drawerList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(3, auto);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 3.5rem;
+  row-gap: 1.35rem;
+}
+
+.drawerItem {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawerLink {
+  color: #ffffff;
+  font-family: inherit;
+  font-size: clamp(1.5rem, 4vw, 48px);
+  font-weight: 500;
+  line-height: 1.25;
+  text-decoration: none;
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.35rem 0;
+  box-sizing: border-box;
+}
+
+.drawerLink:hover {
+  color: var(--color-accent-strong);
+  transform: translateX(4px);
+}
+
+/* Theme icon inside a drawer link. */
+.linkIcon {
+  width: 0.8em;
+  height: auto;
+  flex-shrink: 0;
+  color: var(--color-accent);
+  transition: color 0.18s ease;
+}
+
+.drawerLink:hover .linkIcon {
+  color: var(--color-accent-strong);
+}
+
+/* Sub-menu (e.g. About > sections) */
+/* Dropdown toggle: the whole link acts as the toggle. */
+.drawerToggle {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  margin: 0;
+}
+
+/* Chevron sits right next to the label; rotation is handled by GSAP. */
+.chevronIcon {
+  width: 0.55em;
+  height: 0.55em;
+  flex-shrink: 0;
+  margin-left: 0.3em;
+  color: currentColor;
+  transform-origin: center;
+}
+
+.drawerToggleOpen {
+  color: var(--color-accent-strong);
+}
+
+.drawerToggleOpen .linkIcon {
+  color: var(--color-accent-strong);
+}
+
+/* Collapsible wrapper: animates height via grid-template-rows. */
+.drawerSubWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawerSubWrapOpen {
+  grid-template-rows: 1fr;
+  overflow: visible;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.drawerSubWrap > .drawerSubList {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.drawerSubList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Indent sub-items to align with where the parent link's text begins. */
+  margin-left: clamp(1.7rem, 4.6vw, 3.4rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.drawerSubItem {
+  /* Staggered reveal: each item eases in, offset by its index. */
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 0s;
+}
+
+.drawerSubWrapOpen .drawerSubItem {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: calc(0.12s + var(--i) * 0.07s);
+}
+
+.drawerSubLink {
+  position: relative;
+  color: var(--color-text);
+  font-size: clamp(1.125rem, 2.4vw, 1.75rem);
+  font-weight: 400;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0;
+  transition:
+    color 0.2s ease,
+    padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawerSubLink:hover {
+  color: var(--color-accent-strong);
+  padding-left: 0.4rem;
+}
+
+
+
+
+/* ========================================
+   RESPONSIVE
+   Target breakpoints (max-width):
+   1408 · 1216 · 1024 · 768 · 575 · 480 · 420 · 360
+   1799 / 1599 are handled by the fluid clamp()/vw
+   values in the base styles. Nav font size steps
+   down from 1408px and continues on every size below.
+======================================== */
+
+@media (max-width: 1408px) {
+  /* Mandatory font-size reduction begins here and carries downward. */
+  .drawerLink {
+    font-size: 2.5rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1.5rem;
+  }
+
+}
+
+@media (max-width: 1216px) {
+  .drawerLink {
+    font-size: 2.125rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1.375rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    margin: 0;
+    padding: 16px clamp(1rem, 3vw, 30px);
+  }
+
+  /* Nav and contact card stack vertically. */
+  .drawerBody {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .contactCard {
+    width: 100%;
+  }
+
+  .drawerLink {
+    font-size: 2rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .drawerContent {
+    max-width: 100%;
+  }
+
+  .drawerList {
+    grid-auto-flow: row;
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    row-gap: 1.25rem;
+  }
+
+  .drawerLink {
+    font-size: 1.75rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1.125rem;
+  }
+
+}
+
+@media (max-width: 575px) {
+  .drawerList {
+    row-gap: 1.25rem;
+  }
+
+  .drawerSubList {
+    gap: 0.65rem;
+    margin-left: 2rem;
+  }
+
+  .drawerLink {
+    font-size: 1.5rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1.0625rem;
+  }
+
+  .logoIcon {
+    height: 36px;
+  }
+
+  .logoText {
+    height: 15px;
+  }
+
+  .contactCard {
+    padding: 1.25rem;
+  }
+
+  .contactBody {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* Shrink the LETS TALK header button */
+  .actions > a {
+    padding: 11px 15px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .drawerList {
+    row-gap: 1.15rem;
+  }
+
+  .drawerSubWrapOpen {
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .drawerSubList {
+    gap: 0.6rem;
+    margin-left: 1.75rem;
+  }
+
+  .drawerLink {
+    font-size: 1.375rem;
+  }
+
+  .brandName {
+    font-size: 1.125rem;
+  }
+
+  .contactImages {
+    gap: 0.5rem;
+  }
+
+  .actions > a {
+    padding: 10px 13px;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .logoIcon {
+    height: 28px;
+  }
+
+  .logoText {
+    height: 12px;
+  }
+
+  .actions {
+    gap: 0.375rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .drawerLink {
+    font-size: 1.25rem;
+  }
+
+  .drawerSubLink {
+    font-size: 1rem;
+  }
+
+  .brandName {
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+  }
+}

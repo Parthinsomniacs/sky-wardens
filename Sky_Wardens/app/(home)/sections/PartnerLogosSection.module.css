@@ -1,0 +1,141 @@
+.section {
+  position: relative;
+  background-color: var(--color-surface-deep);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 60px 0 70px 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   MARQUEE TRACK & GRADIENT MASKS
+======================================== */
+.marqueeContainer {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 12px 0;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 7%,
+    black 93%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 7%,
+    black 93%,
+    transparent 100%
+  );
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 22px;
+  animation: scrollMarquee 46s linear infinite;
+  will-change: transform;
+}
+
+.marqueeTrack:hover {
+  animation-play-state: paused;
+}
+
+/* ========================================
+   INDIVIDUAL LOGO CARD
+======================================== */
+.logoCard {
+  flex-shrink: 0;
+  height: 90px;
+  min-width: 210px;
+  padding: 16px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease, background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.logoImage {
+  max-height: 52px;
+  max-width: 155px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.3s ease, opacity 0.3s ease;
+}
+
+.logoCard:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(77, 217, 255, 0.45);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(77, 217, 255, 0.2);
+}
+
+.logoCard:hover .logoImage {
+  opacity: 1;
+  transform: scale(1.06);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 10px rgba(77, 217, 255, 0.3));
+}
+
+/* ========================================
+   ANIMATION & RESPONSIVE
+======================================== */
+@keyframes scrollMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 40px 0;
+  }
+
+  .marqueeTrack {
+    gap: 16px;
+    animation-duration: 36s;
+  }
+
+  .logoCard {
+    height: 74px;
+    min-width: 160px;
+    padding: 12px 18px;
+    border-radius: 12px;
+  }
+
+  .logoImage {
+    max-height: 40px;
+    max-width: 125px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    animation-play-state: paused;
+  }
+}

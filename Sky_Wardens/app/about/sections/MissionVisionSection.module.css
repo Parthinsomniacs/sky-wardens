@@ -1,0 +1,261 @@
+/* ==========================================================================
+   MISSION & VISION SECTION STYLES
+   ========================================================================== */
+
+.section {
+  position: relative;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-subtle);
+  scroll-margin-top: calc(var(--header-height) + 20px);
+}
+
+.inner {
+  margin: 0 var(--layout-margin);
+  padding: 120px var(--layout-padding);
+  box-sizing: border-box;
+}
+
+/* ========================================
+   CENTERED HEADER
+   ======================================== */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto 4rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-accent);
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent);
+  display: inline-block;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 5.5vw, 4.5rem);
+  line-height: 1.05;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+/* ========================================
+   CENTERED FULL-WIDTH CONTENT
+   ======================================== */
+
+.contentWrap {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.75rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+.textBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1280px;
+}
+
+.leadText {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text);
+  font-weight: 500;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.bodyText {
+  margin: 0;
+  font-family: var(--font-primary);
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ==========================================================================
+   RESPONSIVE LADDER (Strict compliance with .kiro/steering/responsive.md)
+   Target breakpoints: 1799 -> 1599 -> 1408 -> 1216 -> 1024 -> 768 -> 575 -> 480 -> 420 -> 360
+   ========================================================================== */
+
+@media (max-width: 1799px) {
+  .inner {
+    padding: 110px var(--layout-padding);
+  }
+}
+
+@media (max-width: 1599px) {
+  .inner {
+    padding: 100px var(--layout-padding);
+  }
+
+  .header {
+    margin-bottom: 3.5rem;
+  }
+}
+
+/* Font reduction starts here per responsive.md rules */
+@media (max-width: 1408px) {
+  .heading {
+    font-size: 3.75rem;
+  }
+}
+
+@media (max-width: 1216px) {
+  .heading {
+    font-size: 3.25rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    margin: 0;
+    padding: 70px 24px;
+  }
+
+  .heading {
+    font-size: 2.85rem;
+  }
+
+  .header {
+    margin-bottom: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: 60px 20px;
+  }
+
+  .heading {
+    font-size: 2.4rem;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .leadText,
+  .bodyText {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+}
+
+@media (max-width: 575px) {
+  .inner {
+    padding: 50px 16px;
+  }
+
+  .heading {
+    font-size: 2.1rem;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .leadText,
+  .bodyText {
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+
+  .contentWrap {
+    gap: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .heading {
+    font-size: 1.85rem;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .leadText,
+  .bodyText {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .heading {
+    font-size: 1.65rem;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+  }
+
+  .leadText,
+  .bodyText {
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .heading {
+    font-size: 1.45rem;
+  }
+
+  .title {
+    font-size: 17px;
+  }
+
+  .leadText,
+  .bodyText {
+    font-size: 14px;
+  }
+}

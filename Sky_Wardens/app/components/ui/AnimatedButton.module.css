@@ -1,0 +1,150 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: var(--font-primary);
+  font-weight: 640;
+  letter-spacing: -0.06em;
+  color: #ffffff;
+  text-decoration: none;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+}
+
+.sizeMd {
+  height: 3.5rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  font-size: 1.2rem;
+}
+
+.sizeSm {
+  padding: 15px 20px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.inner,
+.innerHover,
+.innerStatic {
+  pointer-events: none;
+  display: block;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+}
+
+.innerHover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transform: translateY(70%);
+}
+
+/* Background */
+.bg {
+  overflow: hidden;
+  border-radius: 9999px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(1);
+  transition: transform 1.8s cubic-bezier(0.19, 1, 0.22, 1);
+  border: 1px solid var(--color-accent);
+  background-color: var(--color-accent);
+}
+
+.bg,
+.bgLayer,
+.bgLayers {
+  display: block;
+}
+
+.bgLayers {
+  position: absolute;
+  inset: 0;
+}
+
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  transform: translateY(100%);
+}
+
+.layer1 {
+  background-color: var(--color-accent-light);
+}
+
+.layer2 {
+  background-color: var(--color-accent-strong);
+}
+
+.layer3 {
+  background-color: var(--color-accent);
+}
+
+/* Hover interactions */
+.button:hover .innerStatic {
+  opacity: 0;
+  transform: translateY(-70%);
+  transition:
+    transform 1.4s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 0.3s linear;
+}
+
+.button:hover .innerHover {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    transform 1.4s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 1.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.button:hover .bgLayer {
+  transition:
+    transform 1.3s cubic-bezier(0.19, 1, 0.22, 1),
+    opacity 0.3s linear;
+}
+
+.button:hover .layer1 {
+  transform: translateY(0);
+}
+
+.button:hover .layer2 {
+  transition-delay: 0.1s;
+  transform: translateY(0);
+}
+
+.button:hover .layer3 {
+  transition-delay: 0.2s;
+  transform: translateY(0);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg,
+  .bgLayer,
+  .innerStatic,
+  .innerHover,
+  .button:hover .innerStatic,
+  .button:hover .innerHover,
+  .button:hover .bgLayer {
+    transition: none;
+  }
+
+  .button:hover .layer1,
+  .button:hover .layer2,
+  .button:hover .layer3 {
+    transform: translateY(100%);
+  }
+}

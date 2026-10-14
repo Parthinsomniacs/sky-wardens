@@ -1,0 +1,11 @@
+.section {
+  position: relative;
+  background-color: var(--color-surface-deep);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.loop {
+  color: #ffffff;
+}

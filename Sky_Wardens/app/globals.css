@@ -1,0 +1,171 @@
+/* ========================================
+   DESIGN TOKENS
+======================================== */
+
+:root {
+  /* Colors */
+  --color-bg: #181818;
+  --color-surface: #111111;
+  --color-surface-light: #181818;
+
+  /* Darker surfaces used by hero / feature sections */
+  --color-surface-deep: #0c0d10;
+  --color-surface-card: #15161a;
+  --color-surface-card-hover: #181a1f;
+
+  --color-text: #ffffff;
+  --color-text-secondary: #a3a3a3;
+  --color-text-muted: #737373;
+  --color-text-dim: #a8a8af;
+
+  /* Brand accent (single source for the accent used across the site) */
+  --color-accent: #105784;
+  --color-accent-strong: #4dd9ff;
+  --color-accent-light: #39c9ff;
+
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --space-lg: 48px;
+  --space-xl: 96px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+
+  /* Layout */
+  --header-height: 80px;
+  --layout-margin: 12.5px;
+  --layout-padding: 40px;
+
+  /* Typography */
+  --font-primary: var(--font-geist-sans), sans-serif;
+  --font-display: var(--font-boldonse), "Arial Black", Impact, sans-serif;
+
+  /* Selection */
+  --color-selection-bg: #f5f5f5;
+  --color-selection-text: #0a0a0a;
+}
+
+
+/* ========================================
+   RESET
+======================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Native smooth scroll is disabled; Lenis handles smooth scrolling. */
+html {
+  scroll-behavior: auto;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+
+/* ========================================
+   ELEMENT DEFAULTS
+======================================== */
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* ========================================
+   LAYOUT FOUNDATIONS
+======================================== */
+
+/* Offsets page content below the fixed header. */
+.pageMain {
+  padding-top: var(--header-height);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+
+/* ========================================
+   TEXT SELECTION
+======================================== */
+
+::selection {
+  background: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+
+/* ========================================
+   ACCESSIBILITY
+======================================== */
+
+:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 4px;
+}
+
+
+/* ========================================
+   REDUCED MOTION
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
