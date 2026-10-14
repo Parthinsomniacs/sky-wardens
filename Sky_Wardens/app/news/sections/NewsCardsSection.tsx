@@ -6,15 +6,7 @@ import Link from "next/link";
 import { newsArticles } from "../data";
 import styles from "./NewsCardsSection.module.css";
 
-const categories = [
-  "All",
-  "Aerospace",
-  "Defence",
-  "Sovereign Tech",
-  "Strategic Alliances",
-  "Advanced Systems",
-  "Manufacturing",
-];
+const categories = ["All", "Company News", "Partner News"];
 
 export default function NewsCardsSection() {
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -83,8 +75,12 @@ export default function NewsCardsSection() {
                 {/* Card Content */}
                 <div className={styles.content}>
                   <div className={styles.metaRow}>
-                    <span className={styles.date}>{article.date}</span>
-                    <span className={styles.dot} aria-hidden="true" />
+                    {article.date && (
+                      <>
+                        <span className={styles.date}>{article.date}</span>
+                        <span className={styles.dot} aria-hidden="true" />
+                      </>
+                    )}
                     <span className={styles.readTime}>{article.readTime}</span>
                   </div>
 

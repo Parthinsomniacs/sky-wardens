@@ -21,25 +21,28 @@ interface NewsItem {
 const newsItems: NewsItem[] = [
   {
     id: "news-aerospace",
-    sector: "Aerospace",
-    headline: "Aerospace highlights and autonomous program positioning",
+    sector: "",
+    headline:
+      "Anuvyom and PSGL Explore Deeper Collaboration in UAV and Aerospace Technologies",
     excerpt:
-      "Precision-engineered sovereign airframes, autonomous flight trials, and tactical unmanned aerial surveillance milestones.",
-    date: "March 2026",
-    imageSrc: "/images/business-aerospace.jpg",
-    imageAlt: "Stealth autonomous aerospace drone in testing hangar",
-    href: "/news/aerospace-highlights",
+      "Discussions centre on unmanned systems, technical collaboration and opportunities to develop long-term aerospace manufacturing capability in Nigeria.",
+    date: "",
+    imageSrc: "/images/bel-ghaziabad-delegation-visit.webp",
+    imageAlt: "BEL Ghaziabad delegation visit to Sky Wardens",
+    href: "/news/anuvyom-psgl-aerospace-collaboration",
   },
   {
     id: "news-defence",
-    sector: "Defence",
-    headline: "Defence systems, protective platforms, and readiness updates",
+    sector: "",
+    headline:
+      "PSGL Engages Bharat Electronics Limited on Defence Technology and Industrial Cooperation",
     excerpt:
-      "Sovereign tactical systems engineered for extreme operational theaters and multi-domain defense preparedness.",
-    date: "February 2026",
-    imageSrc: "/images/business-systems.jpg",
-    imageAlt: "Specialist engineer analyzing tactical defence command telemetry",
-    href: "/news/defence-systems",
+      "Our partner PSGL Group explores defence electronics, systems integration and opportunities for local capability development through engagement with BEL.",
+    date: "",
+    imageSrc: "/images/psgl-bharat-electronics-industrial-cooperation.jpg",
+    imageAlt:
+      "PSGL Engages Bharat Electronics Limited on Defence Technology and Industrial Cooperation",
+    href: "/news/psgl-bharat-electronics-industrial-cooperation",
   },
 ];
 
@@ -157,10 +160,12 @@ export default function NewsroomShowcase() {
                           className={styles.detailImage}
                         />
                       </div>
-                      <div className={styles.meta}>
-                        <span className={styles.sector}>{item.sector}</span>
-                        <span className={styles.date}>{item.date}</span>
-                      </div>
+                      {(item.sector || item.date) ? (
+                        <div className={styles.meta}>
+                          {item.sector ? <span className={styles.sector}>{item.sector}</span> : null}
+                          {item.date ? <span className={styles.date}>{item.date}</span> : null}
+                        </div>
+                      ) : null}
                       <p className={styles.excerpt}>{item.excerpt}</p>
                       <Link href={item.href} className={styles.readLink}>
                         <span>Read article</span>
@@ -205,9 +210,11 @@ export default function NewsroomShowcase() {
                 priority={index === 0}
               />
             ))}
-            <span className={styles.mediaSector} aria-hidden="true">
-              {activeItem.sector}
-            </span>
+            {activeItem.sector ? (
+              <span className={styles.mediaSector} aria-hidden="true">
+                {activeItem.sector}
+              </span>
+            ) : null}
           </Link>
         </div>
       </div>

@@ -87,11 +87,6 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
           <div className={styles.metaRow}>
             <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Published</span>
-              <span className={styles.metaValue}>{article.date}</span>
-            </div>
-            <div className={styles.metaDivider} aria-hidden="true" />
-            <div className={styles.metaItem}>
               <span className={styles.metaLabel}>Authority / Directorate</span>
               <span className={styles.metaValue}>{article.author}</span>
             </div>
@@ -111,78 +106,50 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             />
             <div className={styles.imageOverlay} />
           </div>
-          <figcaption className={styles.caption}>
-            {article.imageAlt}
-          </figcaption>
         </div>
 
         {/* Article Body Content */}
-        <div className={styles.contentLayout}>
-          <div className={styles.mainColumn}>
-            {/* Executive Lead Summary */}
-            <div className={styles.executiveLead}>
-              <p>{article.summary}</p>
-            </div>
+        <div className={styles.mainColumn}>
+          {/* Narrative Sections */}
+          <div className={styles.bodySections}>
+            {article.sections.map((section, sIdx) => (
+              <section key={sIdx} className={styles.narrativeSection}>
+                <h2 className={styles.sectionHeading}>{section.heading}</h2>
 
-            {/* Key Highlights Box */}
-            {article.keyHighlights && article.keyHighlights.length > 0 && (
-              <aside className={styles.highlightsBox} aria-label="Key Operational Highlights">
-                <div className={styles.highlightsHeader}>
-                  <span className={styles.highlightsIcon} aria-hidden="true">◈</span>
-                  <h2 className={styles.highlightsTitle}>Key Strategic Highlights</h2>
-                </div>
-                <ul className={styles.highlightsList}>
-                  {article.keyHighlights.map((highlight, index) => (
-                    <li key={index} className={styles.highlightItem}>
-                      <span className={styles.bulletCheck} aria-hidden="true">✓</span>
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </aside>
-            )}
+                {section.body.map((para, pIdx) => (
+                  <p key={pIdx} className={styles.paragraph}>
+                    {para}
+                  </p>
+                ))}
 
-            {/* Narrative Sections */}
-            <div className={styles.bodySections}>
-              {article.sections.map((section, sIdx) => (
-                <section key={sIdx} className={styles.narrativeSection}>
-                  <h2 className={styles.sectionHeading}>{section.heading}</h2>
+                {/* Optional Quote */}
+                {section.quote && (
+                  <blockquote className={styles.quoteBlock}>
+                    <p className={styles.quoteText}>&ldquo;{section.quote}&rdquo;</p>
+                    <cite className={styles.quoteAuthor}>— {article.author}</cite>
+                  </blockquote>
+                )}
 
-                  {section.body.map((para, pIdx) => (
-                    <p key={pIdx} className={styles.paragraph}>
-                      {para}
-                    </p>
-                  ))}
+                {/* Optional Bullet Points */}
+                {section.bulletPoints && section.bulletPoints.length > 0 && (
+                  <ul className={styles.specsList}>
+                    {section.bulletPoints.map((bp, bIdx) => (
+                      <li key={bIdx} className={styles.specItem}>
+                        <span className={styles.specDot} aria-hidden="true" />
+                        <span>{bp}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))}
+          </div>
 
-                  {/* Optional Quote */}
-                  {section.quote && (
-                    <blockquote className={styles.quoteBlock}>
-                      <p className={styles.quoteText}>&ldquo;{section.quote}&rdquo;</p>
-                      <cite className={styles.quoteAuthor}>— {article.author}</cite>
-                    </blockquote>
-                  )}
-
-                  {/* Optional Bullet Points */}
-                  {section.bulletPoints && section.bulletPoints.length > 0 && (
-                    <ul className={styles.specsList}>
-                      {section.bulletPoints.map((bp, bIdx) => (
-                        <li key={bIdx} className={styles.specItem}>
-                          <span className={styles.specDot} aria-hidden="true" />
-                          <span>{bp}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-              ))}
-            </div>
-
-            {/* Back Button CTA */}
-            <div className={styles.bottomActions}>
-              <Link href="/news" className={styles.backButton}>
-                ← Back to News &amp; Insights
-              </Link>
-            </div>
+          {/* Back Button CTA */}
+          <div className={styles.bottomActions}>
+            <Link href="/news" className={styles.backButton}>
+              ← Back to News &amp; Insights
+            </Link>
           </div>
         </div>
 
@@ -209,7 +176,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                       <span className={styles.relatedBadge}>{rel.category}</span>
                     </div>
                     <div className={styles.relatedContent}>
-                      <span className={styles.relatedDate}>{rel.date}</span>
+                      {rel.date && <span className={styles.relatedDate}>{rel.date}</span>}
                       <h3 className={styles.relatedHeadline}>{rel.headline}</h3>
                     </div>
                   </Link>

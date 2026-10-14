@@ -24,65 +24,30 @@ interface NewsItem {
 const newsItems: NewsItem[] = [
   {
     id: "news-aerospace",
-    sector: "Aerospace",
-    headline: "Aerospace highlights and autonomous program positioning",
+    sector: "",
+    headline:
+      "Anuvyom and PSGL Explore Deeper Collaboration in UAV and Aerospace Technologies",
     excerpt:
-      "Precision-engineered sovereign airframes, autonomous flight trials, and tactical unmanned aerial surveillance milestones.",
-    date: "March 2026",
-    imageSrc: "/images/business-aerospace.jpg",
-    imageAlt: "Stealth autonomous aerospace drone in testing hangar",
-    href: "/capabilities",
+      "Discussions centre on unmanned systems, technical collaboration and opportunities to develop long-term aerospace manufacturing capability in Nigeria.",
+    date: "",
+    imageSrc: "/images/bel-ghaziabad-delegation-visit.webp",
+    imageAlt: "BEL Ghaziabad delegation visit to Sky Wardens",
+    href: "/news/anuvyom-psgl-aerospace-collaboration",
     gridClass: styles.card1,
   },
   {
     id: "news-defence",
-    sector: "Defence",
-    headline: "Defence systems, protective platforms, and readiness updates",
+    sector: "",
+    headline:
+      "PSGL Engages Bharat Electronics Limited on Defence Technology and Industrial Cooperation",
     excerpt:
-      "Sovereign tactical systems engineered for extreme operational theaters and multi-domain defense preparedness.",
-    date: "February 2026",
-    imageSrc: "/images/business-systems.jpg",
-    imageAlt: "Specialist engineer analyzing tactical defence command telemetry",
-    href: "/capabilities",
+      "Our partner PSGL Group explores defence electronics, systems integration and opportunities for local capability development through engagement with BEL.",
+    date: "",
+    imageSrc: "/images/psgl-bharat-electronics-industrial-cooperation.jpg",
+    imageAlt:
+      "PSGL Engages Bharat Electronics Limited on Defence Technology and Industrial Cooperation",
+    href: "/news/psgl-bharat-electronics-industrial-cooperation",
     gridClass: styles.card2,
-  },
-  /*
-  {
-    id: "news-systems",
-    sector: "Advanced Systems",
-    headline: "Autonomous telemetry & cyber architecture for next-gen command",
-    excerpt:
-      "Real-time sensor fusion, encrypted communications, and edge-AI compute units engineered for zero-latency operations in contested theaters.",
-    date: "January 2026",
-    imageSrc: "/images/business-tactical.jpg",
-    imageAlt: "Tactical telemetry and orbital defence mission tablet",
-    href: "/capabilities",
-    gridClass: styles.card3,
-  },
-  {
-    id: "news-petrochem",
-    sector: "Petrochemical",
-    headline: "Industrial product lines and operational market developments",
-    excerpt:
-      "High-temperature metallurgy, zero-fail pressure equipment, and strategic processing solutions for national energy resilience.",
-    date: "December 2025",
-    imageSrc: "/images/business-energy.jpg",
-    imageAlt: "Advanced petrochemical processing infrastructure at twilight",
-    href: "/capabilities",
-    gridClass: styles.card4,
-  },
-  */
-  {
-    id: "news-strategic",
-    sector: "Strategic Initiative",
-    headline: "Indigenous defence supply chain: Scaling sovereign capability",
-    excerpt:
-      "Accelerating sovereign production through industrial partnerships, advanced testing facilities, and indigenous manufacturing networks.",
-    date: "November 2025",
-    imageSrc: "/images/hero-editorial.jpg",
-    imageAlt: "High-technology sovereign defence engineering portrait",
-    href: "/capabilities",
-    gridClass: styles.card5,
   },
 ];
 
