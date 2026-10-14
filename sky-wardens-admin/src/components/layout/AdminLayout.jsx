@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import {
   Menu,
   X,
-  Search,
-  Bell,
   LogOut,
   LayoutDashboard,
   Mail,
@@ -19,7 +17,6 @@ import {
   Cpu,
   FlaskConical,
   Layers,
-  Crown,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useProducts } from "../../context/ProductsContext";
@@ -29,16 +26,14 @@ export default function AdminLayout({
   currentTab = "dashboard",
   onTabChange,
 }) {
-  const { user, logout, switchRole, isSuperAdmin } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
   const { divisions = [], products = [] } = useProducts();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(true);
 
   const userMenuRef = useRef(null);
-  const notifMenuRef = useRef(null);
 
   // Close dropdowns on outside click or escape
   useEffect(() => {
@@ -46,15 +41,11 @@ export default function AdminLayout({
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
         setUserDropdownOpen(false);
       }
-      if (notifMenuRef.current && !notifMenuRef.current.contains(e.target)) {
-        setNotificationsOpen(false);
-      }
     };
 
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {
         setUserDropdownOpen(false);
-        setNotificationsOpen(false);
       }
     };
 
@@ -127,32 +118,7 @@ export default function AdminLayout({
     },
   ];
 
-  const recentNotifications = [
-    {
-      id: "notif-1",
-      title: "New Tactical UAV Inquiry",
-      desc: "Indian Air Force Procurement Wing requested specs for AeroViper.",
-      time: "Today, 15:42",
-      unread: true,
-      tab: "contact-leads",
-    },
-    {
-      id: "notif-2",
-      title: "Guidance System RFQ",
-      desc: "Lockheed Martin Tactical Systems submitted inquiry for Sky-Nav 400.",
-      time: "Today, 11:20",
-      unread: true,
-      tab: "contact-leads",
-    },
-    {
-      id: "notif-3",
-      title: "Security Telemetry Passed",
-      desc: "Automated penetration test completed: Zero vulnerabilities detected.",
-      time: "Yesterday, 22:00",
-      unread: false,
-      tab: "users",
-    },
-  ];
+
 
   const getPageTitle = (tab) => {
     switch (tab) {
@@ -440,136 +406,15 @@ export default function AdminLayout({
               </span>
             </div>
 
-            {/* Global Search Bar */}
-            <div className="relative hidden md:block w-56 lg:w-72 ml-2">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search leads, pages, banners..."
-                className="w-full pl-9 pr-10 py-1.5 text-xs bg-[#f4f7fa] border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white transition"
-              />
-              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 bg-white border border-gray-200 px-1 py-0.2 rounded font-mono">
-                ⌘K
-              </span>
-            </div>
           </div>
 
-          {/* Right: Role Switcher, SOC Status, Notifications, User Menu */}
+          {/* Right: User Menu */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Quick Role Simulation Switcher */}
-            <div className="flex items-center gap-1 bg-[#f4f7fa] p-1 rounded-xl border border-[#e2e8f0]">
-              <button
-                type="button"
-                onClick={() => switchRole && switchRole("Super Admin")}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
-                  user?.role === "Super Admin"
-                    ? "bg-purple-700 text-white shadow-2xs"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-                title="Super Admin Mode: Full System Access (Leads Visible)"
-              >
-                <Crown className="w-3 h-3" />
-                <span className="hidden md:inline">Super Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (switchRole) switchRole("Normal Admin");
-                  if (currentTab === "contact-leads" || currentTab === "leads") {
-                    if (onTabChange) onTabChange("dashboard");
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
-                  user?.role === "Normal Admin"
-                    ? "bg-[#105784] text-white shadow-2xs"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-                title="Normal Admin Mode: Operational (Leads Hidden)"
-              >
-                <Shield className="w-3 h-3" />
-                <span className="hidden md:inline">Normal Admin</span>
-              </button>
-            </div>
-
-            {/* Notification Bell Dropdown */}
-            <div ref={notifMenuRef} className="relative">
-              <button
-                onClick={() => {
-                  setNotificationsOpen(!notificationsOpen);
-                  setUserDropdownOpen(false);
-                }}
-                title="Notifications"
-                className="relative p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition cursor-pointer"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500" />
-              </button>
-
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 animate-fadeIn">
-                  <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#1c232f]">
-                      Operational Alerts
-                    </span>
-                    <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded">
-                      2 Unread
-                    </span>
-                  </div>
-
-                  <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
-                    {recentNotifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        onClick={() => {
-                          setNotificationsOpen(false);
-                          if (notif.tab === "contact-leads" && !isSuperAdmin) {
-                            if (onTabChange) onTabChange("dashboard");
-                          } else if (onTabChange) {
-                            onTabChange(notif.tab);
-                          }
-                        }}
-                        className={`p-3 text-xs hover:bg-gray-50 cursor-pointer transition ${
-                          notif.unread ? "bg-sky-50/40" : ""
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-gray-800">
-                            {notif.title}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            {notif.time}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-gray-500 mt-1 line-clamp-2">
-                          {notif.desc}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {isSuperAdmin && (
-                    <div className="pt-2 px-3 border-t border-gray-100 text-center">
-                      <button
-                        onClick={() => {
-                          setNotificationsOpen(false);
-                          if (onTabChange) onTabChange("contact-leads");
-                        }}
-                        className="text-xs font-semibold text-[#105784] hover:underline cursor-pointer"
-                      >
-                        View All Contact Leads
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* User Profile Menu */}
             <div ref={userMenuRef} className="relative">
               <button
                 onClick={() => {
                   setUserDropdownOpen(!userDropdownOpen);
-                  setNotificationsOpen(false);
                 }}
                 className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition cursor-pointer"
               >

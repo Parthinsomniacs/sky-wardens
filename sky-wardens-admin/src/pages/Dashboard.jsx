@@ -282,75 +282,7 @@ export default function Dashboard({ onNavigateTab }) {
         </div>
       </div>
 
-      {/* Quick Actions Navigation Hub */}
-      <div className="bg-white rounded-xl p-5 border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)]">
-        <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-          Console Quick Navigation
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {isSuperAdmin ? (
-            <button
-              onClick={() => onNavigateTab && onNavigateTab("contact-leads")}
-              className="p-4 bg-[#f8fafc] hover:bg-sky-50/60 border border-[#eaedf1] hover:border-[#105784]/30 rounded-xl text-left transition group cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-lg bg-[#105784]/10 text-[#105784] flex items-center justify-center mb-2.5 group-hover:scale-105 transition">
-                <Mail className="w-4 h-4" />
-              </div>
-              <div className="text-xs font-bold text-[#1c232f]">
-                Contact Leads
-              </div>
-              <div className="text-[11px] text-gray-400 mt-0.5">
-                All public inquiries & RFQs ({leads.length})
-              </div>
-            </button>
-          ) : (
-            <button
-              onClick={() => onNavigateTab && onNavigateTab("masters")}
-              className="p-4 bg-[#f8fafc] hover:bg-sky-50/60 border border-[#eaedf1] hover:border-[#105784]/30 rounded-xl text-left transition group cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-lg bg-[#105784]/10 text-[#105784] flex items-center justify-center mb-2.5 group-hover:scale-105 transition">
-                <Database className="w-4 h-4" />
-              </div>
-              <div className="text-xs font-bold text-[#1c232f]">
-                Divisions Master
-              </div>
-              <div className="text-[11px] text-gray-400 mt-0.5">
-                Manage industrial pillars ({divisions.length})
-              </div>
-            </button>
-          )}
 
-          <button
-            onClick={() => onNavigateTab && onNavigateTab("products-aerospace")}
-            className="p-4 bg-[#f8fafc] hover:bg-sky-50/60 border border-[#eaedf1] hover:border-[#105784]/30 rounded-xl text-left transition group cursor-pointer"
-          >
-            <div className="w-9 h-9 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center mb-2.5 group-hover:scale-105 transition">
-              <Plane className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-[#1c232f]">
-              Products Catalog
-            </div>
-            <div className="text-[11px] text-gray-400 mt-0.5">
-              Aerospace, Defence & more ({products.length})
-            </div>
-          </button>
-
-          <button
-            onClick={() => onNavigateTab && onNavigateTab("users")}
-            className="p-4 bg-[#f8fafc] hover:bg-sky-50/60 border border-[#eaedf1] hover:border-[#105784]/30 rounded-xl text-left transition group cursor-pointer"
-          >
-            <div className="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-2.5 group-hover:scale-105 transition">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-bold text-[#1c232f]">
-              Admin Personnel
-            </div>
-            <div className="text-[11px] text-gray-400 mt-0.5">
-              Super Admin & Normal Admin
-            </div>
-          </button>
-        </div>
-      </div>
 
       {/* Main Content Area: Leads Table for Super Admin vs Divisions Overview for Normal Admin */}
       {isSuperAdmin ? (

@@ -300,106 +300,24 @@ export default function ProductsPage({
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-            <span>Catalog Management</span>
-            <span>/</span>
-            <span className="font-bold text-[#105784]">
-              {activeDivision} Products
-            </span>
-          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#1c232f]">
-            Products Catalog & Inventory
+            {activeDivision === "All" || activeDivision === "all"
+              ? "All Products"
+              : `${activeDivision} Products`}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage equipment across all divisions, upload imagery, and toggle
-            active/inactive status.
+            Manage equipment catalog, upload imagery, and toggle active/inactive status.
           </p>
         </div>
 
-        {/* Division Switch & Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Dynamic Division Switch Pills from Master */}
-          {visibleDivisions.length > 0 && (
-            <div className="bg-white p-1 rounded-xl border border-[#e2e8f0] shadow-2xs flex items-center gap-1 overflow-x-auto max-w-full">
-              {/* All Divisions Pill */}
-              <button
-                onClick={() => handleDivisionChange("All")}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
-                  activeDivision === "All" || activeDivision === "all"
-                    ? "bg-[#105784] text-white shadow-2xs"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>All Divisions</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    activeDivision === "All" || activeDivision === "all"
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-100 text-gray-700"
-                  }`}
-                >
-                  {products.length}
-                </span>
-              </button>
-
-              {visibleDivisions.map((div, divIdx) => {
-                const isSelected = activeDivision === div.name;
-                const count = products.filter((p) => p.division === div.name).length;
-
-                return (
-                  <button
-                    key={div.id || div._id || div.slug || div.name || `div-${divIdx}`}
-                    onClick={() => handleDivisionChange(div.name)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
-                      isSelected
-                        ? "bg-[#105784] text-white shadow-2xs"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    {renderDivisionIcon(div.name, "w-3.5 h-3.5")}
-                    <span>{div.name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Add Product Button (Opens Right Sidebar Drawer) */}
+        {/* Action: Only New Product Button (Opens Right Sidebar Drawer) */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAddDrawer(true)}
-            className="px-3.5 py-2 bg-[#105784] hover:bg-[#0c476c] text-white text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="px-4 py-2.5 bg-[#105784] hover:bg-[#0c476c] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs hover:shadow-sm transition flex items-center gap-2 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Product</span>
-          </button>
-
-          {/* Export CSV Button */}
-          <button
-            onClick={handleExportCSV}
-            className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-[#ced4da] text-xs font-semibold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
-            title="Export Products to CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-gray-500" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-
-          {/* Reset to Default Button */}
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="p-2 bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-600 border border-[#ced4da] rounded-xl shadow-2xs transition cursor-pointer"
-            title="Reset Catalog to Default"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <span>New Product</span>
           </button>
         </div>
       </div>
@@ -460,79 +378,10 @@ export default function ProductsPage({
         </div>
       </div>
 
-      {/* Main Filter & Category Bar */}
-      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5 space-y-4">
-        {/* Category Pills Slider */}
-        <div>
-          <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-[#105784]" />
-              <span>Select Category / Line:</span>
-            </div>
-            <span className="text-[11px] text-gray-400">
-              Showing {filteredProducts.length} of {currentProducts.length}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => {
-                setSelectedCategory("all");
-                setCurrentPage(1);
-              }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-                selectedCategory === "all"
-                  ? "bg-[#105784] text-white shadow-2xs"
-                  : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>All {activeDivision}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  selectedCategory === "all"
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {currentProducts.length}
-              </span>
-            </button>
-
-            {currentCategoryDefinitions.map((cat, catIdx) => {
-              const count = categoryCounts[cat.id] || 0;
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id || cat._id || cat.name || `cat-${catIdx}`}
-                  onClick={() => {
-                    setSelectedCategory(cat.id);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? "bg-[#105784] text-white font-bold shadow-2xs"
-                      : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
-                  }`}
-                >
-                  <span>{cat.name}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isSelected
-                        ? "bg-white/20 text-white"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+      {/* Main Filter & Search Bar */}
+      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5">
         {/* Search Input, Status Filter & View Toggle */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#f1f4f8]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search box */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
