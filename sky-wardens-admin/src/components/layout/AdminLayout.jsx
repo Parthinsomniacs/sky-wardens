@@ -101,29 +101,8 @@ export default function AdminLayout({
           id: "products",
           label: "Products",
           icon: Package,
-          subItems: divisions.map((d) => {
-            const count = products.filter((p) => p.division === d.name).length;
-            const targetId =
-              d.slug === "aerospace"
-                ? "products-aerospace"
-                : d.slug === "defence"
-                ? "products-defence"
-                : `products-${d.slug}`;
-
-            let iconComp = Layers;
-            if (d.name === "Aerospace") iconComp = Plane;
-            else if (d.name === "Defence") iconComp = Shield;
-            else if (d.name === "Advanced Systems") iconComp = Cpu;
-            else if (d.name === "Petrochemicals") iconComp = FlaskConical;
-
-            return {
-              id: targetId,
-              label: d.name,
-              icon: iconComp,
-              badge: null,
-              badgeColor: d.badgeColor || "bg-indigo-600",
-            };
-          }),
+          badge: products.length > 0 ? products.length : null,
+          badgeColor: "bg-[#105784]",
         },
         {
           id: "masters",
@@ -253,6 +232,7 @@ export default function AdminLayout({
                 const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
                 const isItemActive =
                   currentTab === item.id ||
+                  (item.id === "products" && currentTab.startsWith("products")) ||
                   (item.id === "contact-leads" && currentTab === "leads");
                 const isChildActive =
                   hasSubItems &&

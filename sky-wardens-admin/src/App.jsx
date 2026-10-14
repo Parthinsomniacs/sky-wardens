@@ -97,8 +97,9 @@ function AppContent() {
       return <AdminUsers />;
     }
     if (currentTab.startsWith("products-") || currentTab === "products") {
-      let initialDivision = "Aerospace";
-      if (currentTab === "products-defence") initialDivision = "Defence";
+      let initialDivision = "All";
+      if (currentTab === "products-aerospace") initialDivision = "Aerospace";
+      else if (currentTab === "products-defence") initialDivision = "Defence";
       else if (currentTab === "products-advanced-systems")
         initialDivision = "Advanced Systems";
       else if (currentTab === "products-petrochemicals")

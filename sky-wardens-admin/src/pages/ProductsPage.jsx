@@ -74,7 +74,7 @@ const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
 };
 
 export default function ProductsPage({
-  initialDivision = "Aerospace",
+  initialDivision = "All",
   onNavigateTab,
 }) {
   const {
@@ -112,13 +112,34 @@ export default function ProductsPage({
 
   const ITEMS_PER_PAGE = 10;
 
-  // Active division products from dynamic products
+  // Active division products from dynamic products (supports All)
   const currentProducts = useMemo(() => {
+    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
+      return products;
+    }
     return products.filter((p) => p.division === activeDivision);
   }, [products, activeDivision]);
 
+  // Temporarily hide Advanced Systems and Petrochemicals, leaving the 2 main divisions (Aerospace & Defence)
+  const visibleDivisions = useMemo(() => {
+    return divisions.filter((d) => {
+      const name = d.name?.toLowerCase().trim();
+      const slug = d.slug?.toLowerCase().trim();
+      return (
+        name !== "advanced systems" &&
+        name !== "petrochemicals" &&
+        slug !== "advanced-systems" &&
+        slug !== "petrochemicals" &&
+        d.status !== "Inactive"
+      );
+    });
+  }, [divisions]);
+
   // Active categories definition dynamically from context
   const currentCategoryDefinitions = useMemo(() => {
+    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
+      return categories;
+    }
     return categories.filter((c) => c.division === activeDivision);
   }, [categories, activeDivision]);
 
@@ -182,13 +203,17 @@ export default function ProductsPage({
     setSearchQuery("");
     setCurrentPage(1);
     if (onNavigateTab) {
-      const slug =
-        newDivision === "Aerospace"
-          ? "products-aerospace"
-          : newDivision === "Defence"
-          ? "products-defence"
-          : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-      onNavigateTab(slug);
+      if (newDivision === "All" || newDivision === "all") {
+        onNavigateTab("products");
+      } else {
+        const slug =
+          newDivision === "Aerospace"
+            ? "products-aerospace"
+            : newDivision === "Defence"
+            ? "products-defence"
+            : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        onNavigateTab(slug);
+      }
     }
   };
 
@@ -294,9 +319,31 @@ export default function ProductsPage({
         {/* Division Switch & Actions */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Dynamic Division Switch Pills from Master */}
-          {divisions.length > 0 && (
+          {visibleDivisions.length > 0 && (
             <div className="bg-white p-1 rounded-xl border border-[#e2e8f0] shadow-2xs flex items-center gap-1 overflow-x-auto max-w-full">
-              {divisions.map((div, divIdx) => {
+              {/* All Divisions Pill */}
+              <button
+                onClick={() => handleDivisionChange("All")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                  activeDivision === "All" || activeDivision === "all"
+                    ? "bg-[#105784] text-white shadow-2xs"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>All Divisions</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    activeDivision === "All" || activeDivision === "all"
+                      ? "bg-white/20 text-white"
+                      : "bg-gray-100 text-gray-700"
+                  }`}
+                >
+                  {products.length}
+                </span>
+              </button>
+
+              {visibleDivisions.map((div, divIdx) => {
                 const isSelected = activeDivision === div.name;
                 const count = products.filter((p) => p.division === div.name).length;
 
@@ -362,7 +409,7 @@ export default function ProductsPage({
         {/* Total in Division */}
         <div className="bg-white rounded-xl p-4 border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] border-l-4 border-l-[#105784]">
           <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-            Total {activeDivision}
+            {activeDivision === "All" || activeDivision === "all" ? "Total Products" : `Total ${activeDivision}`}
           </span>
           <div className="text-2xl font-bold text-[#1c232f] mt-1">
             {currentProducts.length}
@@ -1068,9 +1115,13 @@ export default function ProductsPage({
       {showAddDrawer && (
         <ProductFormDrawer
           mode="add"
-          divisions={divisions}
+          divisions={visibleDivisions}
           allCategories={categories}
-          defaultDivision={activeDivision}
+          defaultDivision={
+            activeDivision === "All" || activeDivision === "all"
+              ? "Aerospace"
+              : activeDivision
+          }
           onClose={() => setShowAddDrawer(false)}
           onSubmit={async (newProductData) => {
             try {
@@ -1091,7 +1142,7 @@ export default function ProductsPage({
         <ProductFormDrawer
           mode="edit"
           initialData={productToEdit}
-          divisions={divisions}
+          divisions={visibleDivisions}
           allCategories={categories}
           defaultDivision={productToEdit.division}
           onClose={() => setProductToEdit(null)}

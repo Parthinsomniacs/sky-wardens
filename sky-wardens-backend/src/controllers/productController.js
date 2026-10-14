@@ -1,250 +1,221 @@
 const Product = require("../models/Product");
+const asyncHandler = require("../utils/asyncHandler");
+const { findByIdOrCustomId, escapeRegex } = require("../utils/queryHelper");
 
 // @desc    Get active products for public client website
 // @route   GET /api/products
 // @access  Public
-const getPublicProducts = async (req, res, next) => {
-  try {
-    const { division, category, search } = req.query;
+const getPublicProducts = asyncHandler(async (req, res) => {
+  const { division, category, search } = req.query;
 
-    // Public only gets Active products!
-    const query = { status: "Active" };
+  // Public visitors only see Active catalog equipment
+  const query = { status: "Active" };
 
-    if (division) {
-      query.division = new RegExp(`^${division}$`, "i");
-    }
-
-    if (category && category !== "all") {
-      query.$or = [
-        { categoryId: category },
-        { categoryTitle: new RegExp(category, "i") },
-        { categoryName: new RegExp(category, "i") },
-      ];
-    }
-
-    if (search) {
-      query.$or = [
-        { name: new RegExp(search, "i") },
-        { description: new RegExp(search, "i") },
-        { id: new RegExp(search, "i") },
-      ];
-    }
-
-    const products = await Product.find(query).sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      products,
-    });
-  } catch (error) {
-    next(error);
+  if (division) {
+    const escapedDiv = escapeRegex(division);
+    query.division = new RegExp(`^${escapedDiv}$`, "i");
   }
-};
+
+  if (category && category !== "all") {
+    const escapedCat = escapeRegex(category);
+    query.$or = [
+      { categoryId: category },
+      { categoryTitle: new RegExp(escapedCat, "i") },
+      { categoryName: new RegExp(escapedCat, "i") },
+    ];
+  }
+
+  if (search) {
+    const escapedSearch = escapeRegex(search);
+    query.$or = [
+      { name: new RegExp(escapedSearch, "i") },
+      { description: new RegExp(escapedSearch, "i") },
+      { id: new RegExp(escapedSearch, "i") },
+    ];
+  }
+
+  const products = await Product.find(query).sort({ createdAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products,
+  });
+});
 
 // @desc    Get all products (Active & Inactive) for Admin Portal
 // @route   GET /api/products/admin/all
-// @access  Private (Super Admin & Normal Admin)
-const getAllAdminProducts = async (req, res, next) => {
-  try {
-    const products = await Product.find().sort({ createdAt: -1 });
+// @access  Private (Admin / Super Admin clearance)
+const getAllAdminProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find().sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      count: products.length,
-      products,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    count: products.length,
+    products,
+  });
+});
 
 // @desc    Get single product by ID or Slug
 // @route   GET /api/products/:id
 // @access  Public
-const getProductById = async (req, res, next) => {
-  try {
-    const identifier = req.params.id;
+const getProductById = asyncHandler(async (req, res) => {
+  const identifier = req.params.id;
+  const product = await findByIdOrCustomId(Product, identifier, ["id"]);
 
-    let product = await Product.findOne({ id: identifier });
-    if (!product && identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findById(identifier);
-    }
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: `Product with identifier '${identifier}' not found.`,
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      product,
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: `Product with identifier '${identifier}' not found.`,
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  res.status(200).json({
+    success: true,
+    product,
+  });
+});
 
 // @desc    Create new product
 // @route   POST /api/products
-// @access  Private (Super Admin & Normal Admin)
-const createProduct = async (req, res, next) => {
-  try {
-    const {
-      name,
-      id,
-      description,
-      imageSrc,
-      imageAlt,
-      division,
-      categoryId,
-      categoryTitle,
-      categoryName,
-      status,
-      details,
-    } = req.body;
+// @access  Private (Admin / Super Admin clearance)
+const createProduct = asyncHandler(async (req, res) => {
+  const {
+    name,
+    id,
+    description,
+    imageSrc,
+    imageAlt,
+    division,
+    categoryId,
+    categoryTitle,
+    categoryName,
+    status,
+    details,
+  } = req.body;
 
-    if (!name || !imageSrc || !division) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide product name, division, and an image.",
-      });
-    }
+  const generatedId =
+    id?.trim() || name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
 
-    const generatedId =
-      id?.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-    // Check if ID already exists
-    const existing = await Product.findOne({ id: generatedId });
-    if (existing) {
-      return res.status(400).json({
-        success: false,
-        message: `Product ID '${generatedId}' already exists. Please choose a unique name/ID.`,
-      });
-    }
-
-    const product = await Product.create({
-      id: generatedId,
-      name: name.trim(),
-      description: description?.trim() || `${name} tactical specification profile.`,
-      imageSrc: imageSrc.trim(),
-      imageAlt: imageAlt?.trim() || name.trim(),
-      division: division.trim(),
-      categoryId: categoryId?.trim() || "general",
-      categoryTitle: categoryTitle?.trim() || categoryName?.trim() || "General Equipment",
-      categoryName: categoryName?.trim() || categoryTitle?.trim() || "General Equipment",
-      status: status || "Active",
-      details: Array.isArray(details) ? details : [],
+  // Check if unique ID already exists
+  const existing = await Product.findOne({ id: generatedId });
+  if (existing) {
+    return res.status(400).json({
+      success: false,
+      message: `Product ID '${generatedId}' already exists. Please choose a unique name/ID.`,
     });
-
-    res.status(201).json({
-      success: true,
-      message: `Product '${product.name}' created successfully.`,
-      product,
-    });
-  } catch (error) {
-    next(error);
   }
-};
+
+  const product = await Product.create({
+    id: generatedId,
+    name: name.trim(),
+    description: description?.trim() || `${name} tactical specification profile.`,
+    imageSrc: imageSrc.trim(),
+    imageAlt: imageAlt?.trim() || name.trim(),
+    division: division.trim(),
+    categoryId: categoryId?.trim() || "general",
+    categoryTitle: categoryTitle?.trim() || categoryName?.trim() || "General Equipment",
+    categoryName: categoryName?.trim() || categoryTitle?.trim() || "General Equipment",
+    status: status || "Active",
+    details: Array.isArray(details) ? details : [],
+  });
+
+  res.status(201).json({
+    success: true,
+    message: `Product '${product.name}' created successfully.`,
+    product,
+  });
+});
 
 // @desc    Update product
 // @route   PUT /api/products/:id
-// @access  Private
-const updateProduct = async (req, res, next) => {
-  try {
-    const identifier = req.params.id;
+// @access  Private (Admin / Super Admin clearance)
+const updateProduct = asyncHandler(async (req, res) => {
+  const identifier = req.params.id;
+  const product = await findByIdOrCustomId(Product, identifier, ["id"]);
 
-    let product = await Product.findOne({ id: identifier });
-    if (!product && identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findById(identifier);
-    }
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: `Product with identifier '${identifier}' not found.`,
-      });
-    }
-
-    const updated = await Product.findByIdAndUpdate(product._id, req.body, {
-      new: true,
-      runValidators: true,
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: `Product with identifier '${identifier}' not found.`,
     });
-
-    res.status(200).json({
-      success: true,
-      message: `Product '${updated.name}' updated successfully.`,
-      product: updated,
-    });
-  } catch (error) {
-    next(error);
   }
-};
+
+  // Whitelist safe update fields (Prevent Mass Assignment)
+  const allowedFields = [
+    "name",
+    "description",
+    "imageSrc",
+    "imageAlt",
+    "division",
+    "categoryId",
+    "categoryTitle",
+    "categoryName",
+    "status",
+    "details",
+  ];
+
+  allowedFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      product[field] = req.body[field];
+    }
+  });
+
+  const updated = await product.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Product '${updated.name}' updated successfully.`,
+    product: updated,
+  });
+});
 
 // @desc    Toggle product status (Active <-> Inactive)
 // @route   PATCH /api/products/:id/status
-// @access  Private
-const toggleProductStatus = async (req, res, next) => {
-  try {
-    const identifier = req.params.id;
+// @access  Private (Admin / Super Admin clearance)
+const toggleProductStatus = asyncHandler(async (req, res) => {
+  const identifier = req.params.id;
+  const product = await findByIdOrCustomId(Product, identifier, ["id"]);
 
-    let product = await Product.findOne({ id: identifier });
-    if (!product && identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findById(identifier);
-    }
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found.",
-      });
-    }
-
-    product.status = product.status === "Active" ? "Inactive" : "Active";
-    await product.save();
-
-    res.status(200).json({
-      success: true,
-      message: `Product '${product.name}' status changed to '${product.status}'.`,
-      status: product.status,
-      product,
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found.",
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  product.status = product.status === "Active" ? "Inactive" : "Active";
+  await product.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Product '${product.name}' status changed to '${product.status}'.`,
+    status: product.status,
+    product,
+  });
+});
 
 // @desc    Delete product
 // @route   DELETE /api/products/:id
-// @access  Private
-const deleteProduct = async (req, res, next) => {
-  try {
-    const identifier = req.params.id;
+// @access  Private (Super Admin clearance)
+const deleteProduct = asyncHandler(async (req, res) => {
+  const identifier = req.params.id;
+  const product = await findByIdOrCustomId(Product, identifier, ["id"]);
 
-    let product = await Product.findOne({ id: identifier });
-    if (!product && identifier.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findById(identifier);
-    }
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found.",
-      });
-    }
-
-    await Product.findByIdAndDelete(product._id);
-
-    res.status(200).json({
-      success: true,
-      message: `Product '${product.name}' was successfully deleted.`,
+  if (!product) {
+    return res.status(404).json({
+      success: false,
+      message: "Product not found.",
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  await Product.findByIdAndDelete(product._id);
+
+  res.status(200).json({
+    success: true,
+    message: `Product '${product.name}' was successfully deleted.`,
+  });
+});
 
 module.exports = {
   getPublicProducts,

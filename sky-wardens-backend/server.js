@@ -14,6 +14,9 @@ connectDB();
 
 const app = express();
 
+// Trust reverse proxy (needed for accurate client IP detection behind proxies/load balancers)
+app.set("trust proxy", 1);
+
 // 1. Security Headers
 app.use(helmet());
 
@@ -42,13 +45,19 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 4. NoSQL Query Injection Sanitization (Express 5 Compatible)
+// 4. NoSQL Query Injection & Prototype Pollution Sanitization (Express 5 Compatible)
 const cleanSanitize = (obj) => {
   if (!obj || typeof obj !== "object") return;
   for (const key of Object.keys(obj)) {
-    if (key.startsWith("$") || key.includes(".")) {
+    if (
+      key.startsWith("$") ||
+      key.includes(".") ||
+      key === "__proto__" ||
+      key === "constructor" ||
+      key === "prototype"
+    ) {
       delete obj[key];
-    } else if (typeof obj[key] === "object") {
+    } else if (typeof obj[key] === "object" && obj[key] !== null) {
       cleanSanitize(obj[key]);
     }
   }

@@ -9,17 +9,43 @@ const {
   toggleProductStatus,
   deleteProduct,
 } = require("../controllers/productController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorize, superAdminOnly } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validateMiddleware");
+const {
+  createProductSchema,
+  updateProductSchema,
+} = require("../validators/productValidator");
 
 // Public routes (Website visitors)
 router.get("/", getPublicProducts);
 router.get("/:id", getProductById);
 
-// Protected routes (Admin Portal)
-router.get("/admin/all", protect, getAllAdminProducts);
-router.post("/", protect, createProduct);
-router.put("/:id", protect, updateProduct);
-router.patch("/:id/status", protect, toggleProductStatus);
-router.delete("/:id", protect, deleteProduct);
+// Protected routes (Admin Portal with strict validation and clearance checks)
+router.get("/admin/all", protect, authorize("Super Admin", "Admin"), getAllAdminProducts);
+
+router.post(
+  "/",
+  protect,
+  authorize("Super Admin", "Admin"),
+  validate(createProductSchema),
+  createProduct
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("Super Admin", "Admin"),
+  validate(updateProductSchema),
+  updateProduct
+);
+
+router.patch(
+  "/:id/status",
+  protect,
+  authorize("Super Admin", "Admin"),
+  toggleProductStatus
+);
+
+router.delete("/:id", protect, superAdminOnly, deleteProduct);
 
 module.exports = router;

@@ -61,7 +61,7 @@ export default function Footer() {
                   </li>
                 ) : (
                   <li key={item.label} className={styles.linkItem}>
-                    <Link href={item.href} className={styles.navLink}>
+                    <Link href={item.href} prefetch={true} className={styles.navLink}>
                       {item.label}
                     </Link>
                   </li>
@@ -76,7 +76,7 @@ export default function Footer() {
             <ul className={styles.linkList}>
               {focusLinks.map((item) => (
                 <li key={item.label} className={styles.linkItem}>
-                  <Link href={item.href} className={styles.navLink}>
+                  <Link href={item.href} prefetch={true} className={styles.navLink}>
                     {item.label}
                   </Link>
                 </li>

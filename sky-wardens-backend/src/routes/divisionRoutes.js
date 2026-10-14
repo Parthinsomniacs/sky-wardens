@@ -6,14 +6,33 @@ const {
   updateDivision,
   deleteDivision,
 } = require("../controllers/divisionController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, authorize, superAdminOnly } = require("../middleware/authMiddleware");
+const validate = require("../middleware/validateMiddleware");
+const {
+  createDivisionSchema,
+  updateDivisionSchema,
+} = require("../validators/divisionValidator");
 
 // Public (to populate tabs on both frontend & admin)
 router.get("/", getDivisions);
 
-// Protected (Admin operations)
-router.post("/", protect, createDivision);
-router.put("/:id", protect, updateDivision);
-router.delete("/:id", protect, deleteDivision);
+// Protected (Admin operations with validation and RBAC authorization)
+router.post(
+  "/",
+  protect,
+  authorize("Super Admin", "Admin"),
+  validate(createDivisionSchema),
+  createDivision
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorize("Super Admin", "Admin"),
+  validate(updateDivisionSchema),
+  updateDivision
+);
+
+router.delete("/:id", protect, superAdminOnly, deleteDivision);
 
 module.exports = router;
