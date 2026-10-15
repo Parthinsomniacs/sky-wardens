@@ -32,7 +32,7 @@ const isValidTab = (tab) => {
 };
 
 function AppContent() {
-  const { isAuthenticated, isSuperAdmin } = useAuth();
+  const { isAuthenticated, user, isSuperAdmin } = useAuth();
 
   const [currentTab, setCurrentTab] = useState(() => {
     const hash = window.location.hash.replace("#", "");
@@ -134,18 +134,18 @@ function AppContent() {
   };
 
   return (
-    <AdminLayout currentTab={currentTab} onTabChange={handleTabChange}>
-      {renderCurrentModule()}
-    </AdminLayout>
+    <ProductsProvider key={user?.id || user?.email || "auth-session"}>
+      <AdminLayout currentTab={currentTab} onTabChange={handleTabChange}>
+        {renderCurrentModule()}
+      </AdminLayout>
+    </ProductsProvider>
   );
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <ProductsProvider>
-        <AppContent />
-      </ProductsProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

@@ -39,10 +39,17 @@ export function ProductsProvider({ children }) {
           console.warn("Categories API load error:", err.message);
           return [];
         }),
-        productsApi.getAllAdmin().catch((err) => {
-          console.warn("Products API load error:", err.message);
-          return [];
-        }),
+        productsApi
+          .getAllAdmin()
+          .catch(async (err) => {
+            console.warn("Products admin API load error, falling back to public API:", err.message);
+            try {
+              const pub = await productsApi.getPublic();
+              return Array.isArray(pub) ? pub : [];
+            } catch {
+              return [];
+            }
+          }),
       ]);
 
       if (Array.isArray(fetchedDivisions) && fetchedDivisions.length > 0) {
