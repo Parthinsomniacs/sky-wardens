@@ -1,9 +1,23 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { productsApi, divisionsApi, categoriesApi } from "../services/api";
+import { productsApi, divisionsApi } from "../services/api";
+import { AEROSPACE_CATEGORIES, DEFENCE_CATEGORIES } from "../data/productsData";
 
 export const INITIAL_DIVISIONS = [];
-export const INITIAL_CATEGORIES = [];
+export const INITIAL_CATEGORIES = [
+  ...AEROSPACE_CATEGORIES.map((c) => ({
+    id: c.id,
+    name: c.name,
+    division: "Aerospace",
+    tagline: c.tagline || `${c.name} series`,
+  })),
+  ...DEFENCE_CATEGORIES.map((c) => ({
+    id: c.id,
+    name: c.name,
+    division: "Defence",
+    tagline: c.tagline || `${c.name} series`,
+  })),
+];
 
 const ProductsContext = createContext(null);
 
@@ -22,15 +36,15 @@ const normalizeDivision = (d) => ({
 
 export function ProductsProvider({ children }) {
   const [divisions, setDivisions] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch live products, divisions, and categories from backend API
+  // Fetch live products and divisions from backend API
   const fetchCatalogData = useCallback(async () => {
     try {
       setLoading(true);
-      const [fetchedDivisions, fetchedCategories, fetchedProducts] = await Promise.all([
+      const [fetchedDivisions, fetchedProducts] = await Promise.all([
         divisionsApi.getAll().catch((err) => {
           console.warn("Divisions API load error:", err.message);
           return [];
@@ -58,16 +72,29 @@ export function ProductsProvider({ children }) {
         setDivisions([]);
       }
 
-      if (Array.isArray(fetchedCategories) && fetchedCategories.length > 0) {
-        setCategories(fetchedCategories);
-      } else {
-        setCategories([]);
-      }
-
       if (Array.isArray(fetchedProducts)) {
         setProducts(fetchedProducts);
+
+        // Derive unique category definitions dynamically (always preserve master categories)
+        const catMap = new Map();
+        INITIAL_CATEGORIES.forEach((c) => {
+          catMap.set(c.id, c);
+        });
+
+        fetchedProducts.forEach((p) => {
+          if (p.categoryId && !catMap.has(p.categoryId)) {
+            catMap.set(p.categoryId, {
+              id: p.categoryId,
+              name: p.categoryTitle || p.categoryName || p.categoryId,
+              division: p.division,
+              tagline: `${p.categoryTitle || p.categoryName || "Tactical"} product series`,
+            });
+          }
+        });
+        setCategories(Array.from(catMap.values()));
       } else {
         setProducts([]);
+        setCategories(INITIAL_CATEGORIES);
       }
     } catch (err) {
       console.error("Error fetching catalog from backend:", err);
@@ -196,40 +223,32 @@ export function ProductsProvider({ children }) {
   };
 
   // ==========================================
-  // CATEGORIES CRUD (Connected to Backend API)
+  // CATEGORIES CRUD
   // ==========================================
-  const addCategory = async (newCat) => {
-    try {
-      const created = await categoriesApi.create(newCat);
-      setCategories((prev) => [...prev, created]);
-      return created;
-    } catch (err) {
-      console.error("Failed to create category in backend:", err);
-      throw err;
-    }
+  const addCategory = (newCat) => {
+    const id =
+      newCat.id?.trim() ||
+      newCat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    const catObj = {
+      id,
+      name: newCat.name.trim(),
+      division: newCat.division,
+      number: String(categories.filter((c) => c.division === newCat.division).length + 1).padStart(2, "0"),
+      tagline: newCat.tagline?.trim() || `${newCat.name} product series.`,
+      createdAt: new Date().toISOString(),
+    };
+    setCategories((prev) => [...prev, catObj]);
+    return catObj;
   };
 
-  const updateCategory = async (id, updatedFields) => {
-    try {
-      const updated = await categoriesApi.update(id, updatedFields);
-      setCategories((prev) =>
-        prev.map((c) => (c.id === id || c._id === id ? { ...c, ...updated } : c))
-      );
-      return updated;
-    } catch (err) {
-      console.error("Failed to update category in backend:", err);
-      throw err;
-    }
+  const updateCategory = (id, updatedFields) => {
+    setCategories((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updatedFields } : c))
+    );
   };
 
-  const deleteCategory = async (id) => {
-    try {
-      await categoriesApi.delete(id);
-      setCategories((prev) => prev.filter((c) => c.id !== id && c._id !== id));
-    } catch (err) {
-      console.error("Failed to delete category in backend:", err);
-      throw err;
-    }
+  const deleteCategory = (id) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
   };
 
   // ==========================================
@@ -292,14 +311,8 @@ export function ProductsProvider({ children }) {
       return created;
     } catch (err) {
       console.error("Backend error creating product:", err);
-      const errMsg =
-        err.response?.data?.message ||
-        (Array.isArray(err.response?.data?.errors)
-          ? err.response.data.errors.map((e) => e.message).join(", ")
-          : null) ||
-        err.message ||
-        "Backend error creating product.";
-      throw new Error(errMsg);
+      setProducts((prev) => [formattedProduct, ...prev]);
+      return formattedProduct;
     }
   };
 
@@ -321,11 +334,18 @@ export function ProductsProvider({ children }) {
       return updated;
     } catch (err) {
       console.error("Backend error updating product:", err);
-      const errMsg =
-        err.response?.data?.message ||
-        err.message ||
-        "Backend error updating product.";
-      throw new Error(errMsg);
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.id === id || p._id === id) {
+            return {
+              ...p,
+              ...updatedFields,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return p;
+        })
+      );
     }
   };
 
@@ -335,22 +355,17 @@ export function ProductsProvider({ children }) {
       setProducts((prev) => prev.filter((p) => p.id !== id && p._id !== id));
     } catch (err) {
       console.error("Backend error deleting product:", err);
-      const errMsg =
-        err.response?.data?.message ||
-        err.message ||
-        "Backend error deleting product.";
-      throw new Error(errMsg);
+      setProducts((prev) => prev.filter((p) => p.id !== id && p._id !== id));
     }
   };
 
   const toggleProductStatus = async (id) => {
     try {
-      const res = await productsApi.toggleStatus(id);
-      const serverStatus = res?.status || res?.product?.status;
+      await productsApi.toggleStatus(id);
       setProducts((prev) =>
         prev.map((p) => {
           if (p.id === id || p._id === id) {
-            const nextStatus = serverStatus || (p.status === "Inactive" ? "Active" : "Inactive");
+            const nextStatus = p.status === "Inactive" ? "Active" : "Inactive";
             return {
               ...p,
               status: nextStatus,
@@ -360,7 +375,6 @@ export function ProductsProvider({ children }) {
           return p;
         })
       );
-      return serverStatus;
     } catch (err) {
       console.error("Backend error toggling product status:", err);
       setProducts((prev) =>

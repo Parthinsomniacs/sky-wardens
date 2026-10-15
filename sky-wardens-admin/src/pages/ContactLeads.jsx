@@ -19,6 +19,7 @@ import {
   HelpCircle,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import { INITIAL_LEADS, CONTACT_TYPES } from "../data/mockData";
 import { leadsApi } from "../services/api";
@@ -512,9 +513,10 @@ export default function ContactLeads() {
                     <td className="py-3.5 px-3.5 text-right whitespace-nowrap">
                       <button
                         onClick={() => setSelectedLead(lead)}
-                        className="px-2.5 py-1 text-xs font-semibold text-[#105784] hover:bg-[#105784] hover:text-white rounded border border-[#105784]/30 transition cursor-pointer"
+                        className="p-1.5 text-[#105784] hover:bg-[#105784]/10 rounded border border-[#105784]/30 transition cursor-pointer inline-flex items-center justify-center"
+                        title="View Lead"
                       >
-                        View Lead
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
