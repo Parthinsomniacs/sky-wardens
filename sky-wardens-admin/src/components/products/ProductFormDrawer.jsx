@@ -20,6 +20,8 @@ import {
 import {
   AEROSPACE_CATEGORIES,
   AEROSPACE_CATEGORY_TEMPLATES,
+  DEFENCE_CATEGORIES,
+  DEFENCE_CATEGORY_TEMPLATES,
   PRESET_IMAGES,
   SUGGESTED_SPECS,
 } from "./aerospaceTemplates";
@@ -41,6 +43,7 @@ export default function ProductFormDrawer({
     const fromProps = allCategories.filter((c) => c.division === division);
     if (fromProps.length > 0) return fromProps;
     if (division === "Aerospace") return AEROSPACE_CATEGORIES;
+    if (division === "Defence") return DEFENCE_CATEGORIES;
     return [];
   }, [allCategories, division]);
 
@@ -149,7 +152,11 @@ export default function ProductFormDrawer({
 
   // 1-Click Smart Template Loader
   const handleLoadTemplate = (templateKey) => {
-    const template = AEROSPACE_CATEGORY_TEMPLATES[templateKey];
+    const registry =
+      division === "Defence"
+        ? DEFENCE_CATEGORY_TEMPLATES
+        : AEROSPACE_CATEGORY_TEMPLATES;
+    const template = registry[templateKey];
     if (!template) return;
 
     if (template.description && !description) {
@@ -174,32 +181,49 @@ export default function ProductFormDrawer({
   // MODULAR SECTION BUILDER ACTIONS
   // ==========================================
   const handleAddSpecGridSection = () => {
+    const defaultItems =
+      division === "Defence"
+        ? [
+            { label: "Protection Level", value: "" },
+            { label: "Shell Material", value: "" },
+            { label: "Total Weight", value: "" },
+          ]
+        : [
+            { label: "Take off weight", value: "" },
+            { label: "Flight Time", value: "" },
+            { label: "Payload capacity", value: "" },
+          ];
+
     setSections((prev) => [
       ...prev,
       {
         _id: `sec-grid-${Date.now()}`,
         type: "spec-grid",
         title: "Key Specifications",
-        items: [
-          { label: "Take off weight", value: "" },
-          { label: "Flight Time", value: "" },
-          { label: "Payload capacity", value: "" },
-        ],
+        items: defaultItems,
       },
     ]);
   };
 
   const handleAddTableSection = () => {
+    const defaultRows =
+      division === "Defence"
+        ? [
+            { label: "Testing Standard", value: "" },
+            { label: "Ballistic Protection", value: "" },
+          ]
+        : [
+            { label: "Propulsion", value: "" },
+            { label: "Operating Temperature", value: "" },
+          ];
+
     setSections((prev) => [
       ...prev,
       {
         _id: `sec-table-${Date.now()}`,
         type: "table",
         title: "Technical Specifications",
-        rows: [
-          { label: "Propulsion", value: "" },
-          { label: "Operating Temperature", value: "" },
-        ],
+        rows: defaultRows,
       },
     ]);
   };
@@ -409,7 +433,11 @@ export default function ProductFormDrawer({
       name: name.trim(),
       description:
         description.trim() || `${name.trim()} configured for tactical operations.`,
-      imageSrc: imageSrc.trim() || "/images/aerospace-products/arrow.png",
+      imageSrc:
+        imageSrc.trim() ||
+        (division === "Defence"
+          ? "/images/2. Defence Page/Abhedya-Level-III-Helmet.png"
+          : "/images/aerospace-products/arrow.png"),
       imageAlt: name.trim(),
       division,
       categoryId: cleanCatId,
@@ -659,7 +687,7 @@ export default function ProductFormDrawer({
                       {/* Category Dropdown */}
                       <div>
                         <label className="text-xs font-bold text-gray-700 block mb-1">
-                          Aerospace Category <span className="text-rose-500">*</span>
+                          {division} Category <span className="text-rose-500">*</span>
                         </label>
                         <select
                           value={categoryName}
@@ -677,13 +705,24 @@ export default function ProductFormDrawer({
                             </option>
                           ))}
                         </select>
-                        {division === "Aerospace" && categoryName && (
+                        {categoryName && (
                           <button
                             type="button"
                             onClick={() => {
-                              const catSlug = categoryName
-                                .toLowerCase()
-                                .replace(/[^a-z0-9]+/g, "-");
+                              const clean = categoryName
+                                .replace(/^[0-9]+\.\s*/, "")
+                                .trim()
+                                .toLowerCase();
+                              const matched = availableCategories.find(
+                                (c) =>
+                                  c.name.toLowerCase() === clean ||
+                                  c.name.toLowerCase() === categoryName.toLowerCase() ||
+                                  c.id.toLowerCase() === clean.replace(/[^a-z0-9]+/g, "-") ||
+                                  c.id.toLowerCase() === categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+                              );
+                              const catSlug = matched
+                                ? matched.id
+                                : clean.replace(/[^a-z0-9]+/g, "-");
                               handleLoadTemplate(catSlug);
                             }}
                             className="mt-1 text-[11px] text-[#105784] hover:text-[#0c476c] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
@@ -741,6 +780,17 @@ export default function ProductFormDrawer({
                           }`}
                         >
                           Upload File
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setImageSourceMode("presets")}
+                          className={`px-2.5 py-0.5 text-[11px] rounded font-semibold transition cursor-pointer ${
+                            imageSourceMode === "presets"
+                              ? "bg-[#105784] text-white shadow-2xs"
+                              : "text-gray-600 hover:text-gray-900"
+                          }`}
+                        >
+                          Preset Library
                         </button>
                         <button
                           type="button"
@@ -816,7 +866,7 @@ export default function ProductFormDrawer({
                       </div>
                     ) : (
                       <>
-                        {imageSourceMode === "upload" ? (
+                        {imageSourceMode === "upload" && (
                           <div
                             onDragOver={(e) => {
                               e.preventDefault();
@@ -844,13 +894,47 @@ export default function ProductFormDrawer({
                               PNG, JPG, WEBP (Transparent background recommended)
                             </span>
                           </div>
-                        ) : (
+                        )}
+
+                        {imageSourceMode === "presets" && (
+                          <div className="space-y-2 border border-gray-200 rounded-xl p-3 bg-gray-50/60">
+                            <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">
+                              Select from {division} Library:
+                            </span>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 custom-scrollbar">
+                              {(PRESET_IMAGES[division] || PRESET_IMAGES.Aerospace || []).map((preset) => (
+                                <button
+                                  key={preset.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setImageSrc(preset.value);
+                                    setImageFileName(preset.label);
+                                  }}
+                                  className="p-2 bg-white rounded-lg border border-gray-200 hover:border-[#105784] hover:shadow-xs transition text-left flex flex-col items-center gap-1.5 group cursor-pointer"
+                                >
+                                  <div className="w-full h-14 bg-[#161c25] rounded p-1 flex items-center justify-center">
+                                    <img
+                                      src={preset.value}
+                                      alt={preset.label}
+                                      className="max-h-full max-w-full object-contain group-hover:scale-105 transition"
+                                    />
+                                  </div>
+                                  <span className="text-[10px] font-semibold text-gray-700 text-center line-clamp-1">
+                                    {preset.label}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {imageSourceMode === "url" && (
                           <div className="space-y-1">
                             <input
                               type="url"
                               value={imageSrc}
                               onChange={(e) => setImageSrc(e.target.value)}
-                              placeholder="https://example.com/images/drone.png"
+                              placeholder="https://example.com/images/product.png"
                               className="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#105784]"
                             />
                             <p className="text-[10px] text-gray-400">

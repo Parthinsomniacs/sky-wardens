@@ -34,6 +34,7 @@ import ProductFormDrawer from "../components/products/ProductFormDrawer";
 import ProductDetailInspectModal from "../components/products/ProductDetailInspectModal";
 import {
   AEROSPACE_CATEGORIES,
+  DEFENCE_CATEGORIES,
   PRESET_IMAGES,
   SUGGESTED_SPECS,
 } from "../components/products/aerospaceTemplates";
@@ -126,7 +127,9 @@ export default function ProductsPage({
       return AEROSPACE_CATEGORIES;
     }
     if (activeDivision === "Defence") {
-      return categories.filter((c) => c.division === "Defence");
+      const fromContext = categories.filter((c) => c.division === "Defence");
+      if (fromContext.length > 0) return fromContext;
+      return DEFENCE_CATEGORIES;
     }
     return categories;
   }, [categories, activeDivision]);

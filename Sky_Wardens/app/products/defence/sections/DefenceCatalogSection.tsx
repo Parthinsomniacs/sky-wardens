@@ -8,71 +8,126 @@ import ProductDetailModal from "../../components/ProductDetailModal";
 import styles from "./DefenceCatalogSection.module.css";
 
 export default function DefenceCatalogSection() {
-  const [categoriesList, setCategoriesList] =
-    useState<DefenceCategory[]>(defenceCategories);
-  const [activeId, setActiveId] = useState<string>(defenceCategories[0].id);
+  const [categoriesList, setCategoriesList] = useState<DefenceCategory[]>([]);
+  const [activeId, setActiveId] = useState<string>("");
   const [selectedProduct, setSelectedProduct] =
     useState<ProductCardItem | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    const fetchLiveProducts = async () => {
+    const fetchLiveCatalog = async () => {
       try {
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const res = await fetch(`${apiUrl}/products?division=Defence`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (
-          isMounted &&
-          data.success &&
-          Array.isArray(data.products) &&
-          data.products.length > 0
-        ) {
-          const categoryMap = new Map<string, DefenceCategory>();
 
-          // Pre-populate with predefined structure for order & taglines
-          defenceCategories.forEach((cat) => {
-            categoryMap.set(cat.id, {
-              ...cat,
-              products: [],
-            });
+        const [catRes, prodRes] = await Promise.all([
+          fetch(`${apiUrl}/categories?division=Defence`).catch(() => null),
+          fetch(`${apiUrl}/products?division=Defence`).catch(() => null),
+        ]);
+
+        const catData = catRes && catRes.ok ? await catRes.json() : null;
+        const prodData = prodRes && prodRes.ok ? await prodRes.json() : null;
+
+        if (!isMounted) return;
+
+        let dynamicCategories: DefenceCategory[] = [];
+
+        // 1. Process Categories from Admin DB
+        if (
+          catData &&
+          catData.success &&
+          Array.isArray(catData.categories) &&
+          catData.categories.length > 0
+        ) {
+          const activeCats = catData.categories.filter(
+            (c: any) => c.status !== "Inactive"
+          );
+          activeCats.sort((a: any, b: any) => {
+            const orderA = a.order ?? parseInt(a.number, 10) ?? 999;
+            const orderB = b.order ?? parseInt(b.number, 10) ?? 999;
+            return orderA - orderB;
           });
 
-          data.products.forEach((p: any) => {
-            const catId = p.categoryId || "helmets";
-            if (!categoryMap.has(catId)) {
-              categoryMap.set(catId, {
-                id: catId,
-                number: String(categoryMap.size + 1).padStart(2, "0"),
-                name: p.categoryTitle || p.categoryName || catId,
+          dynamicCategories = activeCats.map((c: any, idx: number) => ({
+            id: c.id || c.slug || String(c._id),
+            number: c.number || String(idx + 1).padStart(2, "0"),
+            name: c.name,
+            tagline: c.tagline || `${c.name} tactical defence systems.`,
+            products: [],
+          }));
+        } else {
+          // Fallback template structure without static mock products
+          dynamicCategories = defenceCategories.map((c) => ({
+            ...c,
+            products: [],
+          }));
+        }
+
+        // 2. Populate live active products from DB into their respective category
+        if (prodData && prodData.success && Array.isArray(prodData.products)) {
+          prodData.products.forEach((p: any) => {
+            if (p.status === "Inactive") return; // Only active products shown on public site
+
+            const rawCatId = (p.categoryId || "").toLowerCase().trim();
+            const normalizedCatId = rawCatId.replace(/^[0-9]+-/, "");
+            const cleanTitle = (p.categoryTitle || p.categoryName || "")
+              .replace(/^[0-9]+\.\s*/, "")
+              .trim()
+              .toLowerCase();
+
+            // Find matching category
+            let matchedCat = dynamicCategories.find(
+              (c) =>
+                c.id.toLowerCase() === rawCatId ||
+                c.id.toLowerCase() === normalizedCatId ||
+                c.name.toLowerCase() === cleanTitle
+            );
+
+            // If not found, dynamically append category
+            if (!matchedCat) {
+              const newCat: DefenceCategory = {
+                id: normalizedCatId || `cat-${dynamicCategories.length + 1}`,
+                number: String(dynamicCategories.length + 1).padStart(2, "0"),
+                name: p.categoryTitle || p.categoryName || "Tactical Systems",
                 tagline: `${p.categoryTitle || p.categoryName} tactical defence gear.`,
                 products: [],
-              });
+              };
+              dynamicCategories.push(newCat);
+              matchedCat = newCat;
             }
-            categoryMap.get(catId)!.products.push({
-              id: p.id,
+
+            matchedCat.products.push({
+              id: p.id || p._id,
               name: p.name,
               description: p.description,
-              imageSrc: p.imageSrc,
+              imageSrc:
+                p.imageSrc ||
+                "/images/2. Defence Page/Abhedya-Level-III-Helmet.png",
               imageAlt: p.imageAlt || p.name,
               details: p.details || [],
             });
           });
-
-          const populated = Array.from(categoryMap.values()).filter(
-            (c) => c.products.length > 0
-          );
-          if (populated.length > 0) {
-            setCategoriesList(populated);
-          }
         }
+
+        // 3. Filter ONLY categories that have active products added from admin
+        const populatedCategories = dynamicCategories
+          .filter((cat) => cat.products && cat.products.length > 0)
+          .map((cat, idx) => ({
+            ...cat,
+            number: String(idx + 1).padStart(2, "0"),
+          }));
+
+        setCategoriesList(populatedCategories);
+        setActiveId((prev) => {
+          if (populatedCategories.some((c) => c.id === prev)) return prev;
+          return populatedCategories[0]?.id || "";
+        });
       } catch (err) {
-        // Fallback to static data
+        console.error("Error fetching live defence catalog:", err);
       }
     };
 
-    fetchLiveProducts();
+    fetchLiveCatalog();
     return () => {
       isMounted = false;
     };
@@ -95,20 +150,21 @@ export default function DefenceCatalogSection() {
   const activeCategory =
     categoriesList.find((cat) => cat.id === activeId) || categoriesList[0];
 
-  const totalProducts = activeCategory.products.length;
-  const currentIndex = selectedProduct
-    ? activeCategory.products.findIndex((p) => p.id === selectedProduct.id)
-    : -1;
+  const totalProducts = activeCategory?.products?.length || 0;
+  const currentIndex =
+    selectedProduct && activeCategory?.products
+      ? activeCategory.products.findIndex((p) => p.id === selectedProduct.id)
+      : -1;
   const hasMoreThanOne = totalProducts > 1;
 
   const handlePrev = () => {
-    if (totalProducts <= 1) return;
+    if (totalProducts <= 1 || !activeCategory) return;
     const prevIndex = (currentIndex - 1 + totalProducts) % totalProducts;
     setSelectedProduct(activeCategory.products[prevIndex]);
   };
 
   const handleNext = () => {
-    if (totalProducts <= 1) return;
+    if (totalProducts <= 1 || !activeCategory) return;
     const nextIndex = (currentIndex + 1) % totalProducts;
     setSelectedProduct(activeCategory.products[nextIndex]);
   };
@@ -127,27 +183,35 @@ export default function DefenceCatalogSection() {
             </div>
 
             <nav aria-label="Defence Categories Navigation">
-              <ul className={styles.navList}>
-                {categoriesList.map((cat: DefenceCategory) => {
-                  const isActive = activeId === cat.id;
+              {categoriesList.length > 0 ? (
+                <ul className={styles.navList}>
+                  {categoriesList.map((cat: DefenceCategory) => {
+                    const isActive = activeId === cat.id;
 
-                  return (
-                    <li key={cat.id} className={styles.navItem}>
-                      <button
-                        type="button"
-                        className={`${styles.navButton} ${
-                          isActive ? styles.navButtonActive : ""
-                        }`}
-                        onClick={(e) => handleCategoryClick(cat.id, e)}
-                        aria-current={isActive ? "true" : undefined}
-                      >
-                        <span className={styles.navNumber}>{cat.number}.</span>
-                        <span className={styles.navName}>{cat.name}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                    return (
+                      <li key={cat.id} className={styles.navItem}>
+                        <button
+                          type="button"
+                          className={`${styles.navButton} ${
+                            isActive ? styles.navButtonActive : ""
+                          }`}
+                          onClick={(e) => handleCategoryClick(cat.id, e)}
+                          aria-current={isActive ? "true" : undefined}
+                        >
+                          <span className={styles.navNumber}>{cat.number}.</span>
+                          <span className={styles.navName}>{cat.name}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-xs text-gray-400 font-mono">
+                    INDEX SYNCHRONIZING
+                  </p>
+                </div>
+              )}
             </nav>
           </div>
         </aside>
@@ -156,74 +220,89 @@ export default function DefenceCatalogSection() {
             RIGHT PRODUCT CATEGORY SECTION (ACTIVE ONLY)
             ======================================== */}
         <div className={styles.contentArea}>
-          <article
-            key={activeCategory.id}
-            id={activeCategory.id}
-            className={styles.categorySection}
-          >
-            <div className={styles.categoryHeader}>
-              <span className={styles.categoryEyebrow}>
-                {activeCategory.number} / DEFENCE DIVISION
-              </span>
-              <h2 className={styles.categoryTitle}>{activeCategory.name}</h2>
-              {activeCategory.tagline && (
-                <p className={styles.categoryTagline}>{activeCategory.tagline}</p>
+          {activeCategory ? (
+            <article
+              key={activeCategory.id}
+              id={activeCategory.id}
+              className={styles.categorySection}
+            >
+              <div className={styles.categoryHeader}>
+                <span className={styles.categoryEyebrow}>
+                  {activeCategory.number} / DEFENCE DIVISION
+                </span>
+                <h2 className={styles.categoryTitle}>{activeCategory.name}</h2>
+                {activeCategory.tagline && (
+                  <p className={styles.categoryTagline}>{activeCategory.tagline}</p>
+                )}
+              </div>
+
+              {/* Products Grid */}
+              {activeCategory.products && activeCategory.products.length > 0 ? (
+                <div className={styles.productsGrid}>
+                  {activeCategory.products.map((product: ProductCardItem) => (
+                    <div key={product.id} className={styles.productCard}>
+                      <div className={styles.productImageWell}>
+                        <Image
+                          src={product.imageSrc}
+                          alt={product.imageAlt}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1500px) 50vw, 33vw"
+                          className={styles.productImage}
+                        />
+                      </div>
+
+                      <div className={styles.productBody}>
+                        <h3 className={styles.productName}>{product.name}</h3>
+                        <p className={styles.productDescription}>
+                          {product.description}
+                        </p>
+                        <button
+                          type="button"
+                          className={styles.viewDetailsButton}
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.emptyStateCard}>
+                  <h3 className={styles.emptyStateTitle}>
+                    Platform Dossiers Under Classification
+                  </h3>
+                  <p className={styles.emptyStateDesc}>
+                    Specifications and technical documentation for this division are
+                    available upon strategic institutional inquiry.
+                  </p>
+                  <Link href="/contact" className={styles.viewDetailsButton}>
+                    Inquire With Defence Division
+                  </Link>
+                </div>
               )}
+            </article>
+          ) : (
+            <div className={styles.emptyStateCard}>
+              <h3 className={styles.emptyStateTitle}>
+                Platform Dossiers Under Classification
+              </h3>
+              <p className={styles.emptyStateDesc}>
+                Specifications and technical documentation for this division are
+                available upon strategic institutional inquiry.
+              </p>
+              <Link href="/contact" className={styles.viewDetailsButton}>
+                Inquire With Defence Division
+              </Link>
             </div>
-
-            {/* Products Grid */}
-            {activeCategory.products && activeCategory.products.length > 0 ? (
-              <div className={styles.productsGrid}>
-                {activeCategory.products.map((product: ProductCardItem) => (
-                  <div key={product.id} className={styles.productCard}>
-                    <div className={styles.productImageWell}>
-                      <Image
-                        src={product.imageSrc}
-                        alt={product.imageAlt}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1500px) 50vw, 33vw"
-                        className={styles.productImage}
-                      />
-                    </div>
-
-                    <div className={styles.productBody}>
-                      <h3 className={styles.productName}>{product.name}</h3>
-                      <p className={styles.productDescription}>
-                        {product.description}
-                      </p>
-                      <button
-                        type="button"
-                        className={styles.viewDetailsButton}
-                        onClick={() => setSelectedProduct(product)}
-                      >
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.emptyStateCard}>
-                <h3 className={styles.emptyStateTitle}>
-                  Platform Dossiers Under Classification
-                </h3>
-                <p className={styles.emptyStateDesc}>
-                  Specifications and technical documentation for this division are
-                  available upon strategic institutional inquiry.
-                </p>
-                <Link href="/contact" className={styles.viewDetailsButton}>
-                  Inquire With Defence Division
-                </Link>
-              </div>
-            )}
-          </article>
+          )}
         </div>
       </div>
 
       {/* ========================================
           PRODUCT DETAILS MODAL
           ======================================== */}
-      {selectedProduct && (
+      {selectedProduct && activeCategory && (
         <ProductDetailModal
           product={selectedProduct}
           categoryName={activeCategory.name}

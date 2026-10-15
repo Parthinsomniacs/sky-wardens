@@ -375,3 +375,279 @@ export const AEROSPACE_CATEGORY_TEMPLATES = {
     ],
   },
 };
+
+// ======================================================================
+// DEFENCE CATEGORIES (Fallback structure)
+// ======================================================================
+export const DEFENCE_CATEGORIES = [
+  {
+    id: "helmets",
+    number: "01",
+    name: "Helmets",
+    tagline: "Ballistic and tactical head protection systems for field deployment.",
+  },
+  {
+    id: "shoes-boots",
+    number: "02",
+    name: "Shoes & Boots",
+    tagline: "Anti-spike and terrain-ready military footwear for varied operating conditions.",
+  },
+  {
+    id: "gloves",
+    number: "03",
+    name: "Gloves",
+    tagline: "Shock-resistant and tactical hand protection for operational use.",
+  },
+  {
+    id: "jackets-outerwear",
+    number: "04",
+    name: "Jackets & Outerwear",
+    tagline: "Protective outerwear designed for marine, VIP, and field environments.",
+  },
+  {
+    id: "riot-control",
+    number: "05",
+    name: "Riot Control",
+    tagline: "Protective gear for crowd-control, public-order, and response operations.",
+  },
+  {
+    id: "impact-tools",
+    number: "06",
+    name: "Impact Tools",
+    tagline: "Stun batons and close-response support tools for field readiness.",
+  },
+];
+
+// ======================================================================
+// DEFENCE CATEGORY TEMPLATES
+// ======================================================================
+export const DEFENCE_CATEGORY_TEMPLATES = {
+  "helmets": {
+    name: "Tactical Ballistic Helmet Template",
+    tagline: "Ballistic & Head Protection",
+    description: "Ballistic and tactical head protection systems for frontline defence and rapid response deployment.",
+    sections: [
+      {
+        id: "sec-overview-helm",
+        type: "text",
+        title: "Overview",
+        body: "High-performance ballistic helmet platform designed to deliver modular cranial protection against fragment, handgun, and blunt impact threats in operational environments.",
+      },
+      {
+        id: "sec-specs-helm",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Protection Level", value: "NIJ Level III-A / Level III" },
+          { label: "Shell Material", value: "Advanced Aramid / High-Density UHMWPE" },
+          { label: "Total Weight", value: "1.45 kg" },
+          { label: "Available Sizes", value: "Medium (54-57 cm) / Large (58-61 cm)" },
+          { label: "Retention Harness", value: "4-Point Dial-Adjust with chin cup" },
+          { label: "Shell Color", value: "Tactical Green / Desert Tan / Matte Black" },
+          { label: "V50 Ballistic Value", value: "≥ 650 m/s (17 gr FSP)" },
+          { label: "Operating Temperature", value: "-40°C to +55°C" },
+        ],
+      },
+      {
+        id: "sec-features-helm",
+        type: "list",
+        title: "Tactical Features",
+        items: [
+          "Integrated shroud compatible with standard night vision goggle (NVG) mounts",
+          "Low-profile Picatinny side accessory rails for tactical illuminators and cameras",
+          "Shock-absorbing modular memory foam liner pads for blunt force trauma reduction",
+        ],
+      },
+    ],
+  },
+  "shoes-boots": {
+    name: "Tactical Military Boots Template",
+    tagline: "All-Terrain & Anti-Spike",
+    description: "Anti-spike and terrain-ready military footwear built for jungle, desert, and mountain operations.",
+    sections: [
+      {
+        id: "sec-overview-boot",
+        type: "text",
+        title: "Overview",
+        body: "Rugged tactical combat footwear designed for prolonged field patrols, harsh terrain traversal, and puncture protection.",
+      },
+      {
+        id: "sec-specs-boot",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Anti-Spike Rating", value: "Steel Midsole Plate ≥ 1100 N" },
+          { label: "Upper Material", value: "Full-Grain Leather + Cordura Canvas" },
+          { label: "Outsole", value: "Dual Density PU / Nitrile Rubber" },
+          { label: "Toe Protection", value: "Hardened Thermoplastic Toe Cap" },
+          { label: "Weight per Pair", value: "1.3 kg (Size 8)" },
+          { label: "Size Range", value: "UK / India 6 to 12" },
+        ],
+      },
+      {
+        id: "sec-features-boot",
+        type: "list",
+        title: "Design & Comfort Features",
+        items: [
+          "High-traction multidirectional lug profile with mud-clearing channels",
+          "Water-repellent finish with breathable moisture-wicking inner mesh",
+          "Rust-proof speed lacing eyelets with heavy-duty paracord laces",
+        ],
+      },
+    ],
+  },
+  "gloves": {
+    name: "Tactical Combat Gloves Template",
+    tagline: "Shock-Proof & High-Dexterity",
+    description: "Shock-resistant and tactical hand protection for tactical weapon handling and hazardous operations.",
+    sections: [
+      {
+        id: "sec-overview-glove",
+        type: "text",
+        title: "Overview",
+        body: "Heavy-duty tactical gloves engineered for impact deflection, firm weapon grip, and dexterity during high-intensity operations.",
+      },
+      {
+        id: "sec-specs-glove",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Knuckle Guard", value: "Molded TPR / Carbon Fiber Shell" },
+          { label: "Palm Material", value: "Reinforced Clarino Synthetic Leather" },
+          { label: "Cut Resistance", value: "EN388 Level 3 / Level 5" },
+          { label: "Grip Style", value: "Textured Microfiber Anti-Slip" },
+          { label: "Wrist Closure", value: "Adjustable Hook & Loop Thermal Strap" },
+          { label: "Touchscreen Ready", value: "Conductive Index & Thumb Panels" },
+        ],
+      },
+      {
+        id: "sec-features-glove",
+        type: "list",
+        title: "Performance Features",
+        items: [
+          "Impact-dampening EVA palm cushions to dissipate firearm recoil shock",
+          "Breathable four-way stretch back for temperature regulation in hot climates",
+          "Nylon webbing pull-loop for rapid field donning and carabiner transport",
+        ],
+      },
+    ],
+  },
+  "jackets-outerwear": {
+    name: "Ballistic Vest / Jacket Template",
+    tagline: "Torso Ballistic Defense",
+    description: "Protective body armor and outerwear designed for military, tactical units, and VIP security.",
+    sections: [
+      {
+        id: "sec-overview-jack",
+        type: "text",
+        title: "Overview",
+        body: "Modular body armor jacket configured for maximum vital organ protection, ergonomics, and seamless tactical gear integration.",
+      },
+      {
+        id: "sec-specs-jack",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Protection Level", value: "NIJ Level III / Level IV (with Hard Plates)" },
+          { label: "Carrier Shell", value: "Heavy-Duty 1000D Nylon Cordura" },
+          { label: "Plate Pockets", value: "10 x 12 inch Standalone Front & Back" },
+          { label: "Coverage Area", value: "Front, Back, Sides & Groin (Optional)" },
+          { label: "Quick Release", value: "Single-Pull Cable Egress System" },
+          { label: "Base Vest Weight", value: "3.2 kg (Soft Armor Carrier)" },
+        ],
+      },
+      {
+        id: "sec-table-jack",
+        type: "table",
+        title: "Ballistic Plate Compatibility",
+        rows: [
+          { label: "7.62 x 39 mm AK-47 Mild Steel Core", value: "Stopped (NIJ III)" },
+          { label: "7.62 x 51 mm NATO Ball (M80)", value: "Stopped (NIJ III)" },
+          { label: ".30-06 AP Armor Piercing", value: "Stopped (NIJ IV Ceramic)" },
+        ],
+      },
+      {
+        id: "sec-features-jack",
+        type: "list",
+        title: "Tactical Enhancements",
+        items: [
+          "Full 360° laser-cut Molle attachment system for mission-tailored pouch layouts",
+          "Padded breathable spacer mesh interior for all-day airflow and sweat management",
+          "Reinforced drag handle on upper rear rated to 200 kg extraction tension",
+        ],
+      },
+    ],
+  },
+  "riot-control": {
+    name: "Riot Control Gear Template",
+    tagline: "Public Order & Riot Protection",
+    description: "Protective gear for crowd control, tactical public order response, and non-lethal defense.",
+    sections: [
+      {
+        id: "sec-overview-riot",
+        type: "text",
+        title: "Overview",
+        body: "Comprehensive personal protection equipment designed to defend security personnel against blunt trauma, flying projectiles, and sharp hazards.",
+      },
+      {
+        id: "sec-specs-riot",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Shield Material", value: "High-Clarity Optical Polycarbonate (4mm)" },
+          { label: "Suit Outer Shell", value: "Flame-Retardant Heavy-Duty ABS" },
+          { label: "Energy Absorption", value: "Up to 120 Joules Kinetic Impact" },
+          { label: "Stab Resistance", value: "Up to 20 Joules Knife / Spike" },
+          { label: "Total Suit Weight", value: "4.8 kg (Chest, Back, Arms & Legs)" },
+          { label: "Fire Resistance", value: "V-2 Flame Retardant Certified" },
+        ],
+      },
+      {
+        id: "sec-features-riot",
+        type: "list",
+        title: "System Components",
+        items: [
+          "Ergonomic curved body shield with ambidextrous padded forearm grip",
+          "Flexible articulated elbow and knee joints allowing full mobility",
+          "Supplied in heavy-duty tactical storage bag for rapid fleet staging",
+        ],
+      },
+    ],
+  },
+  "impact-tools": {
+    name: "Tactical Stun Baton Template",
+    tagline: "Controlled Deterrence",
+    description: "Stun batons and close-response support tools for tactical apprehension and crowd deterrence.",
+    sections: [
+      {
+        id: "sec-overview-tool",
+        type: "text",
+        title: "Overview",
+        body: "Non-lethal electronic deterrent platform engineered for rapid close-quarters protection, compliance control, and security deterrence.",
+      },
+      {
+        id: "sec-specs-tool",
+        type: "spec-grid",
+        title: "Key Specifications",
+        items: [
+          { label: "Deterrent Output", value: "High-Peak Pulse Voltage Arc" },
+          { label: "Housing Material", value: "Aerospace-Grade Anodized Aluminum" },
+          { label: "Length", value: "480 mm Rigid / 600 mm Telescopic" },
+          { label: "Power Source", value: "Rechargeable 18650 Li-Ion (Type-C Port)" },
+          { label: "Tactical Light", value: "300 Lumen LED Strobe / High / Low" },
+          { label: "Safety System", value: "Dual Master Switch + Lanyard Disable Pin" },
+        ],
+      },
+      {
+        id: "sec-features-tool",
+        type: "list",
+        title: "Safety & Operational Highlights",
+        items: [
+          "Anti-snatch high-voltage side contact strips along the outer barrel",
+          "High-decibel audible emergency distress alarm (120 dB)",
+          "Wrist lanyard with safety kill-switch to neutralize device if disarmed",
+        ],
+      },
+    ],
+  },
+};
