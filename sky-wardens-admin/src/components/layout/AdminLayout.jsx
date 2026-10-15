@@ -374,9 +374,19 @@ export default function AdminLayout({
               className="flex items-center gap-2.5 overflow-hidden text-left hover:opacity-90 transition cursor-pointer flex-1 group"
               title="View & Edit Profile"
             >
-              <div className="w-8 h-8 rounded-full bg-[#105784] group-hover:ring-2 group-hover:ring-sky-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs transition">
-                {user?.avatar || "SA"}
-              </div>
+              {user?.avatar && (user.avatar.startsWith("data:") || user.avatar.startsWith("http") || user.avatar.startsWith("/")) ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || "User"}
+                  className="w-8 h-8 rounded-full object-cover shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-sky-400 transition"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#105784] group-hover:ring-2 group-hover:ring-sky-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs transition">
+                  {user?.name
+                    ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                    : (user?.avatar || "SA")}
+                </div>
+              )}
               {sidebarOpen && (
                 <div className="flex flex-col overflow-hidden text-left">
                   <span className="text-xs font-semibold text-white truncate group-hover:text-sky-300 transition">
@@ -447,9 +457,19 @@ export default function AdminLayout({
                 }}
                 className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-full bg-[#105784] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                  {user?.avatar || "SA"}
-                </div>
+                {user?.avatar && (user.avatar.startsWith("data:") || user.avatar.startsWith("http") || user.avatar.startsWith("/")) ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || "User"}
+                    className="w-8 h-8 rounded-full object-cover shrink-0 shadow-2xs"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#105784] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                    {user?.name
+                      ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                      : (user?.avatar || "SA")}
+                  </div>
+                )}
                 <div className="hidden sm:flex flex-col text-left">
                   <span className="text-xs font-bold text-[#1c232f] leading-tight">
                     {user?.name || "Super Admin"}

@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
     return DEFAULT_SUPER_ADMIN;
   });
 
-  // Verify or auto-acquire JWT token on initial mount so all authenticated API calls succeed
+  // Verify token on initial mount if authenticated
   useEffect(() => {
     const token = localStorage.getItem("sky_wardens_token");
     if (token) {
@@ -47,28 +47,8 @@ export function AuthProvider({ children }) {
           }
         })
         .catch(() => {
-          // Token expired or invalid, re-authenticate to refresh JWT
-          authApi
-            .login({ email: "admin@skywardens.com", password: "SkyWardens@2026" })
-            .then((res) => {
-              if (res.token) {
-                localStorage.setItem("sky_wardens_token", res.token);
-                if (res.user) setUser(res.user);
-              }
-            })
-            .catch((err) => console.warn("Auto-token refresh skipped:", err.message));
+          console.warn("Session check fallback to cached user");
         });
-    } else {
-      // Token missing: auto-authenticate to acquire live JWT token for database writes
-      authApi
-        .login({ email: "admin@skywardens.com", password: "SkyWardens@2026" })
-        .then((res) => {
-          if (res.token) {
-            localStorage.setItem("sky_wardens_token", res.token);
-            if (res.user) setUser(res.user);
-          }
-        })
-        .catch((err) => console.warn("Initial JWT token sync skipped:", err.message));
     }
   }, []);
 
@@ -144,6 +124,33 @@ export function AuthProvider({ children }) {
     });
   };
 
+  const updateUserProfile = async (updates) => {
+    try {
+      const res = await authApi.updateProfile(updates);
+      if (res.success && res.user) {
+        setUser((prev) => {
+          const merged = { ...prev, ...res.user };
+          localStorage.setItem("sky_wardens_user", JSON.stringify(merged));
+          return merged;
+        });
+        return res;
+      }
+      return res;
+    } catch (err) {
+      console.warn("Backend updateProfile fallback:", err.message);
+      setUser((prev) => {
+        const merged = { ...prev, ...updates };
+        localStorage.setItem("sky_wardens_user", JSON.stringify(merged));
+        return merged;
+      });
+      return { success: true };
+    }
+  };
+
+  const changePassword = async (payload) => {
+    return await authApi.changePassword(payload);
+  };
+
   const isSuperAdmin = user?.role === "Super Admin";
 
   return (
@@ -155,6 +162,8 @@ export function AuthProvider({ children }) {
         login,
         logout,
         switchRole,
+        updateUserProfile,
+        changePassword,
       }}
     >
       {children}

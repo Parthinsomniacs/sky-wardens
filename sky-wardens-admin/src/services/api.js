@@ -47,6 +47,14 @@ export const authApi = {
     const res = await api.get("/auth/me");
     return res.data;
   },
+  updateProfile: async (data) => {
+    const res = await api.put("/auth/profile", data);
+    return res.data;
+  },
+  changePassword: async (data) => {
+    const res = await api.put("/auth/change-password", data);
+    return res.data;
+  },
 };
 
 // 2. PRODUCTS API

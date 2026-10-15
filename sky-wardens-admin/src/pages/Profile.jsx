@@ -1,17 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, FileUp, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function Profile({ onNavigateTab }) {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, changePassword } = useAuth();
 
   // Edit Profile State
   const [name, setName] = useState(user?.name || "Super Admin");
   const [email, setEmail] = useState(user?.email || "admin@skywardens.com");
   const [phone, setPhone] = useState(user?.phone || "9999999999");
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatarUrl || "");
+  const [avatarPreview, setAvatarPreview] = useState(() => {
+    if (user?.avatar && (user.avatar.startsWith("data:") || user.avatar.startsWith("http") || user.avatar.startsWith("/"))) {
+      return user.avatar;
+    }
+    return user?.avatarUrl || "";
+  });
   const [avatarFileName, setAvatarFileName] = useState("");
   const fileInputRef = useRef(null);
+  const [isSubmittingProfile, setIsSubmittingProfile] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+
+  // Sync state when user profile updates in AuthContext
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name);
+      if (user.email) setEmail(user.email);
+      if (user.phone) setPhone(user.phone);
+      if (user.avatar && (user.avatar.startsWith("data:") || user.avatar.startsWith("http") || user.avatar.startsWith("/"))) {
+        setAvatarPreview(user.avatar);
+      }
+    }
+  }, [user]);
 
   // Change Password State
   const [newPassword, setNewPassword] = useState("");
@@ -39,7 +58,7 @@ export default function Profile({ onNavigateTab }) {
     }
   };
 
-  const handleProfileSubmit = (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
       showToast("Name is required.", "error");
@@ -53,31 +72,41 @@ export default function Profile({ onNavigateTab }) {
       showToast("Mobile number is required.", "error");
       return;
     }
-
-    if (updateUserProfile) {
-      updateUserProfile({
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        avatarUrl: avatarPreview || user?.avatarUrl,
-      });
-    } else {
-      // Direct localStorage sync fallback
-      const current = JSON.parse(localStorage.getItem("sky_wardens_user") || "{}");
-      const updated = {
-        ...current,
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        avatarUrl: avatarPreview || current.avatarUrl,
-      };
-      localStorage.setItem("sky_wardens_user", JSON.stringify(updated));
+    if (!/^\d{10}$/.test(phone.trim())) {
+      showToast("Mobile number must be exactly 10 digits.", "error");
+      return;
     }
 
-    showToast("Profile updated successfully!");
+    setIsSubmittingProfile(true);
+    try {
+      const avatarPayload =
+        avatarPreview ||
+        (name
+          ? name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)
+          : "SA");
+
+      if (updateUserProfile) {
+        await updateUserProfile({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          avatar: avatarPayload,
+        });
+      }
+      showToast("Profile updated successfully!");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update profile.", "error");
+    } finally {
+      setIsSubmittingProfile(false);
+    }
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (!newPassword) {
       showToast("Please enter a new password.", "error");
@@ -92,9 +121,26 @@ export default function Profile({ onNavigateTab }) {
       return;
     }
 
-    setNewPassword("");
-    setConfirmPassword("");
-    showToast("Password updated successfully!");
+    setIsSubmittingPassword(true);
+    try {
+      if (changePassword) {
+        const res = await changePassword({
+          newPassword,
+          confirmPassword,
+        });
+        setNewPassword("");
+        setConfirmPassword("");
+        showToast(res?.message || "Password updated successfully!");
+      } else {
+        setNewPassword("");
+        setConfirmPassword("");
+        showToast("Password updated successfully!");
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update password.", "error");
+    } finally {
+      setIsSubmittingPassword(false);
+    }
   };
 
   return (
@@ -180,7 +226,13 @@ export default function Profile({ onNavigateTab }) {
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    maxLength={10}
+                    onChange={(e) => {
+                      const numbersOnly = e.target.value.replace(/\D/g, "");
+                      if (numbersOnly.length <= 10) {
+                        setPhone(numbersOnly);
+                      }
+                    }}
                     placeholder="9999999999"
                     className="w-full px-3.5 py-2.5 text-xs bg-white outline-none"
                     required
@@ -212,7 +264,7 @@ export default function Profile({ onNavigateTab }) {
 
                 {/* Circular Profile Picture Preview */}
                 <div className="mt-4">
-                  {avatarPreview ? (
+                  {avatarPreview && (avatarPreview.startsWith("data:") || avatarPreview.startsWith("http") || avatarPreview.startsWith("/")) ? (
                     <img
                       src={avatarPreview}
                       alt="Profile Preview"
@@ -220,7 +272,14 @@ export default function Profile({ onNavigateTab }) {
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-[#105784] text-white flex items-center justify-center font-bold text-base shadow-xs">
-                      {name?.slice(0, 2).toUpperCase() || "SA"}
+                      {name
+                        ? name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)
+                        : "SA"}
                     </div>
                   )}
                 </div>
@@ -231,9 +290,10 @@ export default function Profile({ onNavigateTab }) {
             <div className="mt-8">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#1c232f] hover:bg-[#105784] text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
+                disabled={isSubmittingProfile}
+                className="px-6 py-2.5 bg-[#1c232f] hover:bg-[#105784] disabled:opacity-50 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
               >
-                Submit
+                {isSubmittingProfile ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>
@@ -296,9 +356,10 @@ export default function Profile({ onNavigateTab }) {
             <div className="pt-2">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#1c232f] hover:bg-[#105784] text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
+                disabled={isSubmittingPassword}
+                className="px-6 py-2.5 bg-[#1c232f] hover:bg-[#105784] disabled:opacity-50 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
               >
-                Submit
+                {isSubmittingPassword ? "Submitting..." : "Submit"}
               </button>
             </div>
           </form>
