@@ -25,9 +25,6 @@ import {
   Image as ImageIcon,
   Cpu,
   FlaskConical,
-  ChevronUp,
-  ChevronDown,
-  Sparkles,
 } from "lucide-react";
 import { useProducts } from "../context/ProductsContext";
 
@@ -61,54 +58,6 @@ const PRESET_IMAGES = {
   ],
 };
 
-const SUGGESTED_SPECS = {
-  Aerospace: [
-    "Take off weight",
-    "Service ceiling",
-    "Wingspan",
-    "Length",
-    "Payload capacity",
-    "Flight Time",
-    "Cruise Speed",
-    "Max Speed",
-    "Wind tolerance",
-    "Take off",
-    "Operational Range",
-    "Battery Capacity",
-  ],
-  Defence: [
-    "Protection Level",
-    "Weight",
-    "Material",
-    "Coverage Area",
-    "Standard",
-    "Color",
-    "Sizes",
-    "Impact Resistance",
-  ],
-  "Advanced Systems": [
-    "Processing Unit",
-    "Detection Range",
-    "Latency",
-    "Power Consumption",
-    "Operating Temperature",
-    "Weight",
-  ],
-};
-
-const AEROSPACE_DRONE_PRESET = [
-  "Take off weight",
-  "Service ceiling",
-  "Wingspan",
-  "Length",
-  "Payload capacity",
-  "Flight Time",
-  "Cruise Speed",
-  "Max Speed",
-  "Wind tolerance",
-  "Take off",
-];
-
 const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
   switch (name) {
     case "Aerospace":
@@ -125,7 +74,7 @@ const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
 };
 
 export default function ProductsPage({
-  initialDivision = "All",
+  initialDivision = "Aerospace",
   onNavigateTab,
 }) {
   const {
@@ -163,34 +112,13 @@ export default function ProductsPage({
 
   const ITEMS_PER_PAGE = 10;
 
-  // Active division products from dynamic products (supports All)
+  // Active division products from dynamic products
   const currentProducts = useMemo(() => {
-    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
-      return products;
-    }
     return products.filter((p) => p.division === activeDivision);
   }, [products, activeDivision]);
 
-  // Temporarily hide Advanced Systems and Petrochemicals, leaving the 2 main divisions (Aerospace & Defence)
-  const visibleDivisions = useMemo(() => {
-    return divisions.filter((d) => {
-      const name = d.name?.toLowerCase().trim();
-      const slug = d.slug?.toLowerCase().trim();
-      return (
-        name !== "advanced systems" &&
-        name !== "petrochemicals" &&
-        slug !== "advanced-systems" &&
-        slug !== "petrochemicals" &&
-        d.status !== "Inactive"
-      );
-    });
-  }, [divisions]);
-
   // Active categories definition dynamically from context
   const currentCategoryDefinitions = useMemo(() => {
-    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
-      return categories;
-    }
     return categories.filter((c) => c.division === activeDivision);
   }, [categories, activeDivision]);
 
@@ -254,17 +182,13 @@ export default function ProductsPage({
     setSearchQuery("");
     setCurrentPage(1);
     if (onNavigateTab) {
-      if (newDivision === "All" || newDivision === "all") {
-        onNavigateTab("products");
-      } else {
-        const slug =
-          newDivision === "Aerospace"
-            ? "products-aerospace"
-            : newDivision === "Defence"
-            ? "products-defence"
-            : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-        onNavigateTab(slug);
-      }
+      const slug =
+        newDivision === "Aerospace"
+          ? "products-aerospace"
+          : newDivision === "Defence"
+          ? "products-defence"
+          : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+      onNavigateTab(slug);
     }
   };
 
@@ -351,24 +275,84 @@ export default function ProductsPage({
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <span>Catalog Management</span>
+            <span>/</span>
+            <span className="font-bold text-[#105784]">
+              {activeDivision} Products
+            </span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#1c232f]">
-            {activeDivision === "All" || activeDivision === "all"
-              ? "All Products"
-              : `${activeDivision} Products`}
+            Products Catalog & Inventory
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage equipment catalog, upload imagery, and toggle active/inactive status.
+            Manage equipment across all divisions, upload imagery, and toggle
+            active/inactive status.
           </p>
         </div>
 
-        {/* Action: Only New Product Button (Opens Right Sidebar Drawer) */}
-        <div className="flex items-center gap-2">
+        {/* Division Switch & Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Dynamic Division Switch Pills from Master */}
+          {divisions.length > 0 && (
+            <div className="bg-white p-1 rounded-xl border border-[#e2e8f0] shadow-2xs flex items-center gap-1 overflow-x-auto max-w-full">
+              {divisions.map((div, divIdx) => {
+                const isSelected = activeDivision === div.name;
+                const count = products.filter((p) => p.division === div.name).length;
+
+                return (
+                  <button
+                    key={div.id || div._id || div.slug || div.name || `div-${divIdx}`}
+                    onClick={() => handleDivisionChange(div.name)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                      isSelected
+                        ? "bg-[#105784] text-white shadow-2xs"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    {renderDivisionIcon(div.name, "w-3.5 h-3.5")}
+                    <span>{div.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Add Product Button (Opens Right Sidebar Drawer) */}
           <button
             onClick={() => setShowAddDrawer(true)}
-            className="px-4 py-2.5 bg-[#105784] hover:bg-[#0c476c] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs hover:shadow-sm transition flex items-center gap-2 cursor-pointer shrink-0"
+            className="px-3.5 py-2 bg-[#105784] hover:bg-[#0c476c] text-white text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>New Product</span>
+            <span>Add Product</span>
+          </button>
+
+          {/* Export CSV Button */}
+          <button
+            onClick={handleExportCSV}
+            className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-[#ced4da] text-xs font-semibold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+            title="Export Products to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-gray-500" />
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
+          {/* Reset to Default Button */}
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="p-2 bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-600 border border-[#ced4da] rounded-xl shadow-2xs transition cursor-pointer"
+            title="Reset Catalog to Default"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -378,7 +362,7 @@ export default function ProductsPage({
         {/* Total in Division */}
         <div className="bg-white rounded-xl p-4 border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] border-l-4 border-l-[#105784]">
           <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-            {activeDivision === "All" || activeDivision === "all" ? "Total Products" : `Total ${activeDivision}`}
+            Total {activeDivision}
           </span>
           <div className="text-2xl font-bold text-[#1c232f] mt-1">
             {currentProducts.length}
@@ -429,10 +413,79 @@ export default function ProductsPage({
         </div>
       </div>
 
-      {/* Main Filter & Search Bar */}
-      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5">
+      {/* Main Filter & Category Bar */}
+      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5 space-y-4">
+        {/* Category Pills Slider */}
+        <div>
+          <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#105784]" />
+              <span>Select Category / Line:</span>
+            </div>
+            <span className="text-[11px] text-gray-400">
+              Showing {filteredProducts.length} of {currentProducts.length}
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => {
+                setSelectedCategory("all");
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                selectedCategory === "all"
+                  ? "bg-[#105784] text-white shadow-2xs"
+                  : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>All {activeDivision}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  selectedCategory === "all"
+                    ? "bg-white/20 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+              >
+                {currentProducts.length}
+              </span>
+            </button>
+
+            {currentCategoryDefinitions.map((cat, catIdx) => {
+              const count = categoryCounts[cat.id] || 0;
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id || cat._id || cat.name || `cat-${catIdx}`}
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-[#105784] text-white font-bold shadow-2xs"
+                      : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
+                  }`}
+                >
+                  <span>{cat.name}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Search Input, Status Filter & View Toggle */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#f1f4f8]">
           {/* Search box */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -1015,13 +1068,9 @@ export default function ProductsPage({
       {showAddDrawer && (
         <ProductFormDrawer
           mode="add"
-          divisions={visibleDivisions}
+          divisions={divisions}
           allCategories={categories}
-          defaultDivision={
-            activeDivision === "All" || activeDivision === "all"
-              ? "Aerospace"
-              : activeDivision
-          }
+          defaultDivision={activeDivision}
           onClose={() => setShowAddDrawer(false)}
           onSubmit={async (newProductData) => {
             try {
@@ -1042,7 +1091,7 @@ export default function ProductsPage({
         <ProductFormDrawer
           mode="edit"
           initialData={productToEdit}
-          divisions={visibleDivisions}
+          divisions={divisions}
           allCategories={categories}
           defaultDivision={productToEdit.division}
           onClose={() => setProductToEdit(null)}
@@ -1215,17 +1264,9 @@ function ProductFormDrawer({
 
   const [name, setName] = useState(initialData?.name || "");
   const [id, setId] = useState(initialData?.id || "");
-
-  // Overview description: check if details has type: "text", else fallback to description
-  const initialOverview = useMemo(() => {
-    if (initialData?.details) {
-      const textSec = initialData.details.find((d) => d.type === "text");
-      if (textSec?.body) return textSec.body;
-    }
-    return initialData?.description || "";
-  }, [initialData]);
-
-  const [description, setDescription] = useState(initialOverview);
+  const [description, setDescription] = useState(
+    initialData?.description || ""
+  );
   const [imageSrc, setImageSrc] = useState(
     initialData?.imageSrc || PRESET_IMAGES[division]?.[0]?.value || "/images/aerospace-products/arrow.png"
   );
@@ -1248,23 +1289,6 @@ function ProductFormDrawer({
   }, [initialData]);
 
   const [specs, setSpecs] = useState(initialSpecs);
-
-  // Dynamic Feature Lists (e.g. "Other features", "Delivery Time" with bullet points)
-  const initialFeatureLists = useMemo(() => {
-    if (initialData?.details) {
-      const lists = initialData.details.filter((d) => d.type === "list");
-      if (lists?.length) {
-        return lists.map((l) => ({
-          title: l.title || "Other features",
-          items: Array.isArray(l.items) ? [...l.items] : [""],
-        }));
-      }
-    }
-    return [];
-  }, [initialData]);
-
-  const [featureLists, setFeatureLists] = useState(initialFeatureLists);
-  const [selectedDropdownParam, setSelectedDropdownParam] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleDivisionToggle = (newDiv) => {
@@ -1337,54 +1361,9 @@ function ProductFormDrawer({
     }
   };
 
-  // Specifications Handlers (Dynamic Key Specifications per product)
-  const handleAddSpecRow = (customLabel = "") => {
-    setSpecs((prev) => [...prev, { label: customLabel, value: "" }]);
-  };
-
-  const handleAddSuggestedSpec = (label) => {
-    if (!specs.some((s) => s.label.trim().toLowerCase() === label.trim().toLowerCase())) {
-      setSpecs((prev) => [...prev, { label, value: "" }]);
-    }
-  };
-
-  const handleSelectAllSuggested = () => {
-    const currentList = SUGGESTED_SPECS[division] || SUGGESTED_SPECS.Aerospace;
-    const existingLabels = new Set(specs.map((s) => s.label.trim().toLowerCase()));
-    const toAdd = currentList
-      .filter((param) => !existingLabels.has(param.toLowerCase()))
-      .map((param) => ({ label: param, value: "" }));
-    if (toAdd.length > 0) {
-      setSpecs((prev) => [...prev, ...toAdd]);
-    }
-  };
-
-  const handleDropdownParamChange = (e) => {
-    const val = e.target.value;
-    if (!val) return;
-    if (val === "__SELECT_ALL__") {
-      handleSelectAllSuggested();
-    } else {
-      handleAddSuggestedSpec(val);
-    }
-    setSelectedDropdownParam("");
-  };
-
-  const handleLoadDronePreset = () => {
-    const preset = AEROSPACE_DRONE_PRESET.map((lbl) => {
-      const existing = specs.find((s) => s.label.trim().toLowerCase() === lbl.toLowerCase());
-      return { label: lbl, value: existing ? existing.value : "" };
-    });
-    setSpecs(preset);
-  };
-
-  const handleMoveSpec = (index, direction) => {
-    const targetIdx = direction === "up" ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= specs.length) return;
-    const updated = [...specs];
-    const [moved] = updated.splice(index, 1);
-    updated.splice(targetIdx, 0, moved);
-    setSpecs(updated);
+  // Specifications Handlers
+  const handleAddSpecRow = () => {
+    setSpecs([...specs, { label: "", value: "" }]);
   };
 
   const handleSpecChange = (index, field, value) => {
@@ -1395,50 +1374,6 @@ function ProductFormDrawer({
 
   const handleRemoveSpec = (index) => {
     setSpecs(specs.filter((_, i) => i !== index));
-  };
-
-  const handleClearAllSpecs = () => {
-    setSpecs([]);
-  };
-
-  // Feature Lists Handlers (e.g. Other Features, Delivery Time with Bullet Points)
-  const handleAddFeatureListSection = (defaultTitle = "Other features") => {
-    setFeatureLists((prev) => [
-      ...prev,
-      { title: defaultTitle, items: [""] },
-    ]);
-  };
-
-  const handleRemoveFeatureListSection = (sectionIndex) => {
-    setFeatureLists((prev) => prev.filter((_, idx) => idx !== sectionIndex));
-  };
-
-  const handleFeatureListTitleChange = (sectionIndex, newTitle) => {
-    const updated = [...featureLists];
-    updated[sectionIndex].title = newTitle;
-    setFeatureLists(updated);
-  };
-
-  const handleAddFeatureListItem = (sectionIndex) => {
-    const updated = [...featureLists];
-    updated[sectionIndex].items = [...(updated[sectionIndex].items || []), ""];
-    setFeatureLists(updated);
-  };
-
-  const handleFeatureListItemChange = (sectionIndex, itemIndex, val) => {
-    const updated = [...featureLists];
-    const items = [...updated[sectionIndex].items];
-    items[itemIndex] = val;
-    updated[sectionIndex].items = items;
-    setFeatureLists(updated);
-  };
-
-  const handleRemoveFeatureListItem = (sectionIndex, itemIndex) => {
-    const updated = [...featureLists];
-    updated[sectionIndex].items = updated[sectionIndex].items.filter(
-      (_, idx) => idx !== itemIndex
-    );
-    setFeatureLists(updated);
   };
 
   const handleSubmit = (e) => {
@@ -1455,47 +1390,6 @@ function ProductFormDrawer({
       (s) => s.label.trim() !== "" && s.value.trim() !== ""
     );
 
-    const payloadDetails = [];
-
-    // 1. Overview text (shown under OVERVIEW in modal)
-    if (description.trim()) {
-      payloadDetails.push({
-        type: "text",
-        title: "Overview",
-        body: description.trim(),
-      });
-    }
-
-    // 2. Key Specifications
-    if (validSpecs.length > 0) {
-      payloadDetails.push({
-        type: "spec-grid",
-        items: validSpecs,
-      });
-    }
-
-    // 3. Dynamic Feature Lists & Bullet Points (e.g. Other Features, Delivery Time)
-    featureLists.forEach((listSec) => {
-      const validItems = (listSec.items || [])
-        .map((it) => it.trim())
-        .filter((it) => it.length > 0);
-      if (listSec.title?.trim() && validItems.length > 0) {
-        payloadDetails.push({
-          type: "list",
-          title: listSec.title.trim(),
-          items: validItems,
-        });
-      }
-    });
-
-    if (payloadDetails.length === 0) {
-      payloadDetails.push({
-        type: "text",
-        title: "Overview",
-        body: `${name} tactical specification profile.`,
-      });
-    }
-
     const productPayload = {
       id: id.trim() || undefined,
       name: name.trim(),
@@ -1511,7 +1405,17 @@ function ProductFormDrawer({
       categoryTitle: cleanCatName,
       categoryName: cleanCatName,
       status,
-      details: payloadDetails,
+      details: [
+        {
+          type: "spec-grid",
+          items: validSpecs,
+        },
+        {
+          type: "text",
+          title: "Overview",
+          body: description.trim() || `${name} tactical specification profile.`,
+        },
+      ],
     };
 
     onSubmit(productPayload);
@@ -1858,161 +1762,57 @@ function ProductFormDrawer({
               )}
             </div>
 
-            {/* 5. Product Overview / Description (No Title Input, only Description with Rich Placeholder) */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-                Product Overview / Description
+            {/* 5. Description / Overview */}
+            <div>
+              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                Description & Mission Role
               </label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Overview description (e.g. Agri Hawk is a 10-litre agriculture spraying hexacopter designed for autonomous or manual operation. Smart terrain and obstacle-avoidance sensors, integrated live video, and automated failsafes support safer, more efficient field coverage while reducing farmers' direct contact with chemicals...)"
+                placeholder="Tactical overview, mission capability, and field deployment parameters..."
                 className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
               />
             </div>
 
-            {/* 6. Dynamic Key Specifications (Custom per product) */}
-            <div className="space-y-3 pt-3 border-t border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* 6. Dynamic Technical Specifications (blank by default) */}
+            <div className="space-y-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
-                      Key Specifications
-                    </label>
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#105784]/10 text-[#105784]">
-                      {specs.length} {specs.length === 1 ? "spec" : "specs"}
-                    </span>
-                  </div>
+                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                    Technical Specifications
+                  </label>
                   <p className="text-[10px] text-gray-400">
-                    Custom specifications for this product (e.g. Arrow Drone, Ranger Drone). Each product has its own unique specs.
+                    Add custom parameter key-value pairs (e.g. Weight, Range, Speed)
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                  {division === "Aerospace" && (
-                    <button
-                      type="button"
-                      onClick={handleLoadDronePreset}
-                      className="px-2 py-1 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                      title="Pre-populate common drone specs (Take off weight, Wingspan, Cruise Speed, etc.)"
-                    >
-                      <Sparkles className="w-3 h-3 text-amber-600" />
-                      <span>Fill Drone Specs</span>
-                    </button>
-                  )}
-                  {specs.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleClearAllSpecs}
-                      className="px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-lg transition cursor-pointer"
-                      title="Clear all specifications"
-                    >
-                      Clear
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleAddSpecRow("")}
-                    className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Add Custom Spec</span>
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleAddSpecRow}
+                  className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Add Spec</span>
+                </button>
               </div>
 
-              {/* Dropdown for Suggested Parameters with Select All */}
-              {SUGGESTED_SPECS[division]?.length > 0 && (
-                <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
-                      Suggested Parameters Dropdown ({division})
-                    </label>
-                    <span className="text-[10px] text-gray-400">
-                      Choose parameter or Select All
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedDropdownParam}
-                      onChange={handleDropdownParamChange}
-                      className="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-800 focus:outline-none focus:border-[#105784] cursor-pointer"
-                    >
-                      <option value="">-- Select parameter to add --</option>
-                      <option value="__SELECT_ALL__" className="font-bold text-[#105784]">
-                        ⚡ Select All ({SUGGESTED_SPECS[division].length} Parameters)
-                      </option>
-                      {SUGGESTED_SPECS[division].map((param) => {
-                        const isAdded = specs.some(
-                          (s) => s.label.trim().toLowerCase() === param.toLowerCase()
-                        );
-                        return (
-                          <option key={param} value={param} disabled={isAdded}>
-                            {isAdded ? `✓ ${param} (Already Added)` : `+ ${param}`}
-                          </option>
-                        );
-                      })}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={handleSelectAllSuggested}
-                      className="px-3 py-1.5 text-xs font-semibold text-[#105784] bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition whitespace-nowrap cursor-pointer"
-                      title="Add all suggested parameters at once"
-                    >
-                      Select All
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Spec Rows */}
               {specs.length === 0 ? (
-                <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center space-y-2">
-                  <p className="text-xs text-gray-500">
-                    No specifications added for this product yet.
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    Choose from the dropdown above, click &quot;Select All&quot;, or click &quot;+ Add Custom Spec&quot;.
-                  </p>
-                  <div className="pt-1 flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAddSpecRow("")}
-                      className="px-3 py-1.5 text-xs font-semibold text-[#105784] bg-white border border-sky-200 rounded-lg hover:bg-sky-50 transition cursor-pointer flex items-center gap-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Custom Parameter</span>
-                    </button>
-                    {division === "Aerospace" && (
-                      <button
-                        type="button"
-                        onClick={handleLoadDronePreset}
-                        className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition cursor-pointer flex items-center gap-1"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Load Drone Specs</span>
-                      </button>
-                    )}
-                  </div>
+                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center text-gray-400 text-xs">
+                  No technical specifications added yet. Click &quot;+ Add Spec&quot; to add custom parameters.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {specs.map((spec, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-1.5 p-2 bg-[#f8fafc] border border-gray-200 rounded-lg hover:border-gray-300 transition"
-                    >
-                      <span className="text-[10px] font-bold text-gray-400 w-5 text-center shrink-0">
-                        #{index + 1}
-                      </span>
+                    <div key={index} className="flex items-center gap-2">
                       <input
                         type="text"
                         value={spec.label}
                         onChange={(e) =>
                           handleSpecChange(index, "label", e.target.value)
                         }
-                        placeholder="Spec Name (e.g. Wingspan, Cruise Speed)"
-                        className="flex-1 min-w-[130px] px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs font-medium text-gray-800 placeholder-gray-400"
+                        placeholder="Spec Name (e.g. Weight)"
+                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
                       />
                       <input
                         type="text"
@@ -2020,158 +1820,17 @@ function ProductFormDrawer({
                         onChange={(e) =>
                           handleSpecChange(index, "value", e.target.value)
                         }
-                        placeholder="Value (e.g. 1700 mm, 25 m/sec)"
-                        className="flex-1 min-w-[130px] px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs text-gray-800 placeholder-gray-400"
+                        placeholder="Value (e.g. 15 kg)"
+                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
                       />
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveSpec(index, "up")}
-                          disabled={index === 0}
-                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded transition cursor-pointer disabled:cursor-default"
-                          title="Move up"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveSpec(index, "down")}
-                          disabled={index === specs.length - 1}
-                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded transition cursor-pointer disabled:cursor-default"
-                          title="Move down"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSpec(index)}
-                          className="p-1 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer ml-1"
-                          title="Delete specification"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* 7. Dynamic Feature Lists & Bullet Points (e.g. Other Features, Delivery Time) */}
-            <div className="space-y-3 pt-3 border-t border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
-                      Feature Lists & Bullet Points
-                    </label>
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#105784]/10 text-[#105784]">
-                      {featureLists.length} {featureLists.length === 1 ? "section" : "sections"}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-gray-400">
-                    Custom list points with section title (e.g. &quot;OTHER FEATURES&quot; or &quot;DELIVERY TIME&quot; as on 5-inch FPV Drone).
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={() => handleAddFeatureListSection("Other features")}
-                    className="px-2 py-1 text-[11px] font-medium text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition cursor-pointer"
-                  >
-                    + &quot;Other Features&quot;
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAddFeatureListSection("Delivery Time")}
-                    className="px-2 py-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition cursor-pointer"
-                  >
-                    + &quot;Delivery Time&quot;
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAddFeatureListSection("")}
-                    className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>Add List Section</span>
-                  </button>
-                </div>
-              </div>
-
-              {featureLists.length === 0 ? (
-                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
-                  No feature bullet lists added yet. Click &quot;+ Other Features&quot; or &quot;+ Delivery Time&quot; if this product has bullet points.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {featureLists.map((listSec, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="p-3 bg-slate-50/80 border border-gray-200 rounded-xl space-y-2.5"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1">
-                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
-                            List Section Title #{sIdx + 1}
-                          </label>
-                          <input
-                            type="text"
-                            value={listSec.title}
-                            onChange={(e) =>
-                              handleFeatureListTitleChange(sIdx, e.target.value)
-                            }
-                            placeholder="e.g. Other features, Delivery Time, Tactical Highlights"
-                            className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] text-xs font-semibold text-gray-800"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFeatureListSection(sIdx)}
-                          className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer shrink-0 mt-3"
-                          title="Delete entire list section"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Bullet points */}
-                      <div className="space-y-1.5 pl-2 border-l-2 border-[#105784]/30">
-                        <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
-                          Bullet Points:
-                        </label>
-                        {(listSec.items || []).map((bullet, bIdx) => (
-                          <div key={bIdx} className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#105784] shrink-0" />
-                            <input
-                              type="text"
-                              value={bullet}
-                              onChange={(e) =>
-                                handleFeatureListItemChange(sIdx, bIdx, e.target.value)
-                              }
-                              placeholder="e.g. Battery: Li-Ion 4s (2600 mAh) or Up to 3 units - 7 days"
-                              className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs text-gray-800"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveFeatureListItem(sIdx, bIdx)}
-                              className="p-1 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer"
-                              title="Remove bullet point"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        ))}
-
-                        <button
-                          type="button"
-                          onClick={() => handleAddFeatureListItem(sIdx)}
-                          className="mt-1 px-2 py-1 text-[11px] font-medium text-[#105784] hover:bg-sky-50 rounded transition flex items-center gap-1 cursor-pointer"
-                        >
-                          <Plus className="w-3 h-3" />
-                          <span>Add Bullet Point</span>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSpec(index)}
+                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer"
+                        title="Remove spec"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>

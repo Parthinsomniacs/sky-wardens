@@ -121,7 +121,7 @@ export default function Hero() {
               FOR THE NEXT ERA
             </p>
             <div className={styles.buttonGroup} data-hero>
-              <AnimatedButton href="/capabilities">
+              <AnimatedButton href="#our-businesses">
                 Explore Capabilities
               </AnimatedButton>
               <AnimatedButton href="/contact">Contact Sky Wardens</AnimatedButton>

@@ -129,12 +129,17 @@ export default function ProductInquiryLeads() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentLeads = filteredLeads.slice(startIndex, endIndex);
 
-  const handleStatusChange = (leadId, newStatus) => {
+  const handleStatusChange = async (leadId, newStatus) => {
     setLeads((prev) =>
       prev.map((lead) => (lead.id === leadId ? { ...lead, status: newStatus } : lead))
     );
     if (selectedLead && selectedLead.id === leadId) {
       setSelectedLead((prev) => ({ ...prev, status: newStatus }));
+    }
+    try {
+      await leadsApi.updateStatus(leadId, newStatus);
+    } catch (err) {
+      console.warn("Product lead status sync error:", err.message);
     }
   };
 

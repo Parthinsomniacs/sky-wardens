@@ -101,28 +101,12 @@ export const divisionsApi = {
   },
 };
 
-// 3.5. CATEGORIES API
+// 3B. CATEGORIES API
 export const categoriesApi = {
-  getAll: async (params) => {
-    const res = await api.get("/categories", { params });
-    return res.data.categories;
-  },
-  getById: async (id) => {
-    const res = await api.get(`/categories/${id}`);
-    return res.data.category;
-  },
-  create: async (categoryData) => {
-    const res = await api.post("/categories", categoryData);
-    return res.data.category;
-  },
-  update: async (id, categoryData) => {
-    const res = await api.put(`/categories/${id}`, categoryData);
-    return res.data.category;
-  },
-  delete: async (id) => {
-    const res = await api.delete(`/categories/${id}`);
-    return res.data;
-  },
+  getAll: async () => [],
+  create: async (catData) => catData,
+  update: async (id, catData) => catData,
+  delete: async (id) => ({ success: true }),
 };
 
 // 4. LEADS API
@@ -137,6 +121,10 @@ export const leadsApi = {
   },
   update: async (id, leadData) => {
     const res = await api.put(`/leads/${id}`, leadData);
+    return res.data.lead;
+  },
+  updateStatus: async (id, status) => {
+    const res = await api.put(`/leads/${id}`, { status });
     return res.data.lead;
   },
   delete: async (id) => {

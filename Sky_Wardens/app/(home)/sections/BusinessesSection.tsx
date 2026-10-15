@@ -250,6 +250,7 @@ export default function BusinessesSection() {
 
   return (
     <section
+      id="our-businesses"
       ref={sectionRef}
       className={styles.section}
       aria-label="Our Businesses"
