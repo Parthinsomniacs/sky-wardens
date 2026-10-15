@@ -17,6 +17,7 @@ import {
   Cpu,
   FlaskConical,
   Layers,
+  User,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useProducts } from "../../context/ProductsContext";
@@ -134,6 +135,8 @@ export default function AdminLayout({
         return "Defence Products Catalog";
       case "users":
         return "Admin Users & Clearance";
+      case "profile":
+        return "Profile";
       default:
         return "Management Console";
     }
@@ -344,13 +347,20 @@ export default function AdminLayout({
         {/* Sidebar Footer User Card */}
         <div className="p-3 bg-[#161c25] border-t border-[#252f3e] shrink-0">
           <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-[#1c232f]">
-            <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-[#105784] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+            <button
+              onClick={() => {
+                if (onTabChange) onTabChange("profile");
+                setMobileMenuOpen(false);
+              }}
+              className="flex items-center gap-2.5 overflow-hidden text-left hover:opacity-90 transition cursor-pointer flex-1 group"
+              title="View & Edit Profile"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#105784] group-hover:ring-2 group-hover:ring-sky-400 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs transition">
                 {user?.avatar || "SA"}
               </div>
               {sidebarOpen && (
                 <div className="flex flex-col overflow-hidden text-left">
-                  <span className="text-xs font-semibold text-white truncate">
+                  <span className="text-xs font-semibold text-white truncate group-hover:text-sky-300 transition">
                     {user?.name || "Super Admin"}
                   </span>
                   <span className="text-[10px] text-gray-400 truncate">
@@ -358,7 +368,7 @@ export default function AdminLayout({
                   </span>
                 </div>
               )}
-            </div>
+            </button>
             {sidebarOpen && (
               <button
                 onClick={logout}
@@ -444,16 +454,26 @@ export default function AdminLayout({
                     </p>
                   </div>
 
-                  <div className="pt-1">
+                  <div className="p-1 space-y-0.5">
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        if (onTabChange) onTabChange("profile");
+                      }}
+                      className="w-full px-3 py-2 text-xs text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-lg font-medium cursor-pointer"
+                    >
+                      <User className="w-3.5 h-3.5 text-gray-400" />
+                      <span>Profile</span>
+                    </button>
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
                         logout();
                       }}
-                      className="w-full px-4 py-2 text-xs text-left text-red-600 hover:bg-red-50 flex items-center gap-2 font-semibold cursor-pointer"
+                      className="w-full px-3 py-2 text-xs text-left text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-lg font-medium cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5 text-red-500" />
-                      Sign Out
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>

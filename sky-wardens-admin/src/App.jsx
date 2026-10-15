@@ -8,8 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import ContactLeads from "./pages/ContactLeads";
 import ProductsPage from "./pages/ProductsPage";
 import AdminUsers from "./pages/AdminUsers";
-
 import MastersPage from "./pages/MastersPage";
+import Profile from "./pages/Profile";
 
 const VALID_TABS = [
   "dashboard",
@@ -22,6 +22,7 @@ const VALID_TABS = [
   "products-petrochemicals",
   "masters",
   "users",
+  "profile",
 ];
 
 const isValidTab = (tab) => {
@@ -60,6 +61,9 @@ function AppContent() {
   }
 
   const renderCurrentModule = () => {
+    if (currentTab === "profile") {
+      return <Profile onNavigateTab={handleTabChange} />;
+    }
     if (currentTab === "masters") {
       return <MastersPage onNavigateTab={handleTabChange} />;
     }
@@ -97,9 +101,8 @@ function AppContent() {
       return <AdminUsers />;
     }
     if (currentTab.startsWith("products-") || currentTab === "products") {
-      let initialDivision = "All";
-      if (currentTab === "products-aerospace") initialDivision = "Aerospace";
-      else if (currentTab === "products-defence") initialDivision = "Defence";
+      let initialDivision = "Aerospace";
+      if (currentTab === "products-defence") initialDivision = "Defence";
       else if (currentTab === "products-advanced-systems")
         initialDivision = "Advanced Systems";
       else if (currentTab === "products-petrochemicals")
