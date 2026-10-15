@@ -25,6 +25,9 @@ import {
   Image as ImageIcon,
   Cpu,
   FlaskConical,
+  ChevronUp,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { useProducts } from "../context/ProductsContext";
 
@@ -57,6 +60,54 @@ const PRESET_IMAGES = {
     { label: "Tactical Defense Mechanism Lubricant", value: "/images/2. Defence Page/Dandd-Stun-Baton.png" },
   ],
 };
+
+const SUGGESTED_SPECS = {
+  Aerospace: [
+    "Take off weight",
+    "Service ceiling",
+    "Wingspan",
+    "Length",
+    "Payload capacity",
+    "Flight Time",
+    "Cruise Speed",
+    "Max Speed",
+    "Wind tolerance",
+    "Take off",
+    "Operational Range",
+    "Battery Capacity",
+  ],
+  Defence: [
+    "Protection Level",
+    "Weight",
+    "Material",
+    "Coverage Area",
+    "Standard",
+    "Color",
+    "Sizes",
+    "Impact Resistance",
+  ],
+  "Advanced Systems": [
+    "Processing Unit",
+    "Detection Range",
+    "Latency",
+    "Power Consumption",
+    "Operating Temperature",
+    "Weight",
+  ],
+};
+
+const AEROSPACE_DRONE_PRESET = [
+  "Take off weight",
+  "Service ceiling",
+  "Wingspan",
+  "Length",
+  "Payload capacity",
+  "Flight Time",
+  "Cruise Speed",
+  "Max Speed",
+  "Wind tolerance",
+  "Take off",
+];
 
 const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
   switch (name) {
@@ -93,9 +144,7 @@ export default function ProductsPage({
   const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'Active' | 'Inactive'
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem("sky_wardens_products_view") || "table";
-  }); // 'table' (List View default) | 'grid'
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' | 'table'
 
   // Side Drawer & Modals state
   const [showAddDrawer, setShowAddDrawer] = useState(false); // Add Sidebar Drawer
@@ -139,13 +188,10 @@ export default function ProductsPage({
 
   // Active categories definition dynamically from context
   const currentCategoryDefinitions = useMemo(() => {
-    let cats = categories;
-    if (activeDivision && activeDivision !== "All" && activeDivision !== "all") {
-      cats = categories.filter((c) => c.division === activeDivision);
+    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
+      return categories;
     }
-    return cats
-      .filter((c) => c.status !== "Inactive")
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    return categories.filter((c) => c.division === activeDivision);
   }, [categories, activeDivision]);
 
   // Compute live product counts per category in this division
@@ -153,11 +199,7 @@ export default function ProductsPage({
     const counts = {};
     currentProducts.forEach((p) => {
       const catId = p.categoryId;
-      const catTitle = p.categoryTitle || p.categoryName;
-      if (catId) counts[catId] = (counts[catId] || 0) + 1;
-      if (catTitle && catTitle !== catId) {
-        counts[catTitle] = (counts[catTitle] || 0) + 1;
-      }
+      counts[catId] = (counts[catId] || 0) + 1;
     });
     return counts;
   }, [currentProducts]);
@@ -177,15 +219,7 @@ export default function ProductsPage({
     return currentProducts.filter((p) => {
       // Category filter
       const matchesCategory =
-        selectedCategory === "all" ||
-        p.categoryId === selectedCategory ||
-        p.categoryTitle === selectedCategory ||
-        p.categoryName === selectedCategory ||
-        (selectedCategory && (
-          (p.categoryId && p.categoryId.toLowerCase() === selectedCategory.toLowerCase()) ||
-          (p.categoryTitle && p.categoryTitle.toLowerCase() === selectedCategory.toLowerCase()) ||
-          (p.categoryName && p.categoryName.toLowerCase() === selectedCategory.toLowerCase())
-        ));
+        selectedCategory === "all" || p.categoryId === selectedCategory;
 
       // Status filter
       const pStatus = p.status || "Active";
@@ -396,65 +430,8 @@ export default function ProductsPage({
       </div>
 
       {/* Main Filter & Search Bar */}
-      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5 space-y-3.5">
-        {/* 1. Industrial Division Selector Tabs */}
-        <div className="flex items-center gap-2 pb-3 border-b border-[#e2e8f0] overflow-x-auto scrollbar-none">
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1">
-            Division:
-          </span>
-          <button
-            type="button"
-            onClick={() => handleDivisionChange("All")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              activeDivision === "All" || activeDivision === "all"
-                ? "bg-[#105784] text-white shadow-2xs"
-                : "bg-[#f4f7fa] text-gray-600 hover:bg-gray-200 border border-[#e2e8f0]"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>All Divisions</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
-                activeDivision === "All" || activeDivision === "all"
-                  ? "bg-white/20 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              {products.length}
-            </span>
-          </button>
-
-          {visibleDivisions.map((div) => {
-            const isSelected = activeDivision === div.name;
-            const count = products.filter((p) => p.division === div.name).length;
-            return (
-              <button
-                key={div.id || div._id || div.name}
-                type="button"
-                onClick={() => handleDivisionChange(div.name)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isSelected
-                    ? "bg-[#105784] text-white shadow-2xs"
-                    : "bg-[#f4f7fa] text-gray-600 hover:bg-gray-200 border border-[#e2e8f0]"
-                }`}
-              >
-                {renderDivisionIcon(div.name, "w-3.5 h-3.5")}
-                <span>{div.name}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-semibold ${
-                    isSelected
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* 2. Search Input, Status Filter & View Toggle */}
+      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5">
+        {/* Search Input, Status Filter & View Toggle */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* Search box */}
           <div className="relative flex-1 max-w-md">
@@ -466,7 +443,7 @@ export default function ProductsPage({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder={`Search ${activeDivision === "All" ? "all equipment" : activeDivision.toLowerCase()} by name, specs, or ID...`}
+              placeholder={`Search ${activeDivision.toLowerCase()} by name, specs, or ID...`}
               className="w-full pl-9 pr-3 py-2 text-xs bg-[#f8fafc] border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white transition"
             />
           </div>
@@ -475,7 +452,6 @@ export default function ProductsPage({
             {/* Status Filter Buttons */}
             <div className="flex items-center gap-1 bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0]">
               <button
-                type="button"
                 onClick={() => {
                   setStatusFilter("all");
                   setCurrentPage(1);
@@ -489,7 +465,6 @@ export default function ProductsPage({
                 All Status
               </button>
               <button
-                type="button"
                 onClick={() => {
                   setStatusFilter("Active");
                   setCurrentPage(1);
@@ -504,7 +479,6 @@ export default function ProductsPage({
                 <span>Active ({activeCount})</span>
               </button>
               <button
-                type="button"
                 onClick={() => {
                   setStatusFilter("Inactive");
                   setCurrentPage(1);
@@ -523,11 +497,7 @@ export default function ProductsPage({
             {/* View Mode Switcher */}
             <div className="bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0] flex items-center">
               <button
-                type="button"
-                onClick={() => {
-                  setViewMode("grid");
-                  localStorage.setItem("sky_wardens_products_view", "grid");
-                }}
+                onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "grid"
                     ? "bg-white text-[#105784] shadow-2xs"
@@ -539,101 +509,20 @@ export default function ProductsPage({
                 <LayoutGrid className="w-3.5 h-3.5" />
               </button>
               <button
-                type="button"
-                onClick={() => {
-                  setViewMode("table");
-                  localStorage.setItem("sky_wardens_products_view", "table");
-                }}
+                onClick={() => setViewMode("table")}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "table"
                     ? "bg-white text-[#105784] shadow-2xs"
                     : "text-gray-500 hover:text-gray-900"
                 }`}
-                title="List / Table View"
-                aria-label="List / Table View"
+                title="Table View"
+                aria-label="Table View"
               >
                 <List className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </div>
-
-        {/* 3. Dynamic Category / Sub-line Filter Pills */}
-        {currentCategoryDefinitions.length > 0 && (
-          <div className="pt-3 border-t border-[#e2e8f0]">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1">
-                Subcategory:
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory("all");
-                  setCurrentPage(1);
-                }}
-                className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer shrink-0 text-xs ${
-                  selectedCategory === "all"
-                    ? "bg-[#1c232f] text-white shadow-2xs"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                All ({currentProducts.length})
-              </button>
-              {currentCategoryDefinitions.map((cat) => {
-                const isSelected =
-                  selectedCategory === cat.id ||
-                  selectedCategory === cat.name ||
-                  selectedCategory === `${cat.number ? cat.number + '. ' : ''}${cat.name}`;
-                const catProductCount =
-                  categoryCounts[cat.id] ||
-                  categoryCounts[cat.name] ||
-                  currentProducts.filter(
-                    (p) =>
-                      p.categoryId === cat.id ||
-                      p.categoryTitle === cat.name ||
-                      p.categoryName === cat.name ||
-                      (p.categoryTitle && p.categoryTitle.toLowerCase().includes(cat.name.toLowerCase()))
-                  ).length;
-
-                return (
-                  <button
-                    key={cat.id || cat._id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(isSelected ? "all" : (cat.id || cat.name));
-                      setCurrentPage(1);
-                    }}
-                    className={`px-2.5 py-1 rounded-md font-semibold transition cursor-pointer shrink-0 text-xs flex items-center gap-1.5 ${
-                      isSelected
-                        ? "bg-[#105784] text-white shadow-2xs"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200/60"
-                    }`}
-                  >
-                    <span>
-                      {(activeDivision === "All" || activeDivision === "all") && (
-                        <span className={`text-[9px] font-bold uppercase mr-1 px-1 py-0.2 rounded ${
-                          isSelected ? "bg-white/20 text-white" : "bg-gray-200 text-gray-600"
-                        }`}>
-                          {cat.division === "Aerospace" ? "Aero" : "Def"}
-                        </span>
-                      )}
-                      {cat.number ? `${cat.number}. ` : ""}{cat.name}
-                    </span>
-                    <span
-                      className={`text-[10px] px-1 rounded-full font-bold ${
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-200/80 text-gray-600"
-                      }`}
-                    >
-                      {catProductCount}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Product Display: Grid or Table View */}
@@ -643,7 +532,7 @@ export default function ProductsPage({
             <Box className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-gray-800">
-            No {activeDivision === "All" ? "Catalog" : activeDivision} Products Found
+            No {activeDivision} Products Found
           </h3>
           <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
             No products match the selected filters or search query. You can reset
@@ -680,14 +569,14 @@ export default function ProductsPage({
               return (
                 <div
                   key={product.id || product._id || `product-grid-${pIdx}`}
-                  className={`bg-white rounded-xl border shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all flex flex-col overflow-hidden group ${
+                  className={`bg-white rounded-xl border shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] hover:shadow-md transition-all flex flex-col overflow-hidden group ${
                     isInactive
                       ? "border-amber-200 bg-amber-50/20 opacity-90"
                       : "border-[#e9ecef]"
                   }`}
                 >
-                  {/* Product Image Box - Premium Tactical Dark Slate Frame */}
-                  <div className="relative aspect-4/3 bg-radial from-[#1e2735] via-[#141b24] to-[#0c1017] border-b border-[#232d3b] overflow-hidden flex items-center justify-center p-3">
+                  {/* Product Image Box */}
+                  <div className="relative aspect-4/3 bg-[#f8fafc] border-b border-[#eaedf1] overflow-hidden flex items-center justify-center p-4">
                     <img
                       src={product.imageSrc}
                       alt={product.imageAlt || product.name}
@@ -695,16 +584,16 @@ export default function ProductsPage({
                         e.target.style.display = "none";
                         e.target.nextSibling.style.display = "flex";
                       }}
-                      className={`max-h-full max-w-full object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-300 ${
+                      className={`max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 ${
                         isInactive ? "grayscale-50" : ""
                       }`}
                     />
                     {/* Fallback placeholder */}
                     <div
                       style={{ display: "none" }}
-                      className="w-full h-full items-center justify-center text-gray-500"
+                      className="w-full h-full items-center justify-center bg-gray-100 text-gray-400"
                     >
-                      {renderDivisionIcon(product.division, "w-10 h-10 text-gray-500")}
+                      {renderDivisionIcon(product.division, "w-10 h-10 text-gray-300")}
                     </div>
 
                     {/* Status Badge Top Left */}
@@ -714,7 +603,7 @@ export default function ProductsPage({
                           e.stopPropagation();
                           handleToggleStatus(product);
                         }}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm transition flex items-center gap-1 cursor-pointer ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs transition flex items-center gap-1 cursor-pointer ${
                           isInactive
                             ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
                             : "bg-emerald-600 text-white hover:bg-emerald-700"
@@ -731,27 +620,20 @@ export default function ProductsPage({
                     </div>
 
                     {/* Category Tag Top Right */}
-                    <span className="absolute top-2.5 right-2.5 bg-[#1c232f]/85 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm border border-white/10 flex items-center gap-1 max-w-[60%] truncate">
-                      {renderDivisionIcon(product.division, "w-3 h-3 text-sky-400 shrink-0")}
-                      <span className="truncate">{product.categoryTitle || product.categoryName}</span>
+                    <span className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-xs text-[#1c232f] text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs border border-gray-200">
+                      {product.categoryTitle || product.categoryName}
                     </span>
                   </div>
 
                   {/* Product Card Body */}
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-bold text-[#105784] uppercase tracking-wider">
-                          {product.division}
-                        </span>
-                        <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.2 rounded">
-                          #{product.id}
-                        </span>
+                      <div className="flex items-start justify-between gap-1">
+                        <h3 className="font-bold text-sm text-[#1c232f] group-hover:text-[#105784] transition-colors line-clamp-1">
+                          {product.name}
+                        </h3>
                       </div>
-                      <h3 className="font-bold text-sm text-[#1c232f] group-hover:text-[#105784] transition-colors line-clamp-1 mt-0.5">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-1 leading-relaxed">
+                      <p className="text-xs text-gray-500 line-clamp-2 mt-1">
                         {product.description}
                       </p>
                     </div>
@@ -762,7 +644,7 @@ export default function ProductsPage({
                         {specItems.slice(0, 2).map((item, idx) => (
                           <div
                             key={`${product.id || product._id || 'item'}-spec-${idx}`}
-                            className="bg-[#f8fafc] p-1.5 rounded-lg border border-[#edf2f7]"
+                            className="bg-[#f8fafc] p-1.5 rounded border border-[#edf2f7]"
                           >
                             <span className="text-[10px] text-gray-400 block truncate">
                               {item.label}
@@ -776,26 +658,28 @@ export default function ProductsPage({
                     )}
 
                     {/* Card Actions */}
-                    <div className="pt-2.5 border-t border-[#f1f4f8] flex items-center justify-between">
-                      <button
-                        onClick={() => setSelectedProduct(product)}
-                        className="text-xs font-bold text-[#105784] hover:text-[#0b3d5d] flex items-center gap-1 cursor-pointer transition"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View Details</span>
-                      </button>
-
-                      <div className="flex items-center gap-1.5">
+                    <div className="pt-2 border-t border-[#f1f4f8] flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-gray-400 truncate max-w-[80px]">
+                        #{product.id}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setSelectedProduct(product)}
+                          className="p-1.5 text-[#105784] hover:bg-[#105784]/10 rounded border border-[#105784]/30 transition cursor-pointer"
+                          title="Inspect Technical Specs"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => setProductToEdit(product)}
-                          className="p-1.5 text-gray-600 hover:text-sky-700 hover:bg-sky-50 rounded-lg border border-gray-200 transition cursor-pointer"
+                          className="p-1.5 text-sky-700 hover:bg-sky-50 rounded border border-sky-300 transition cursor-pointer"
                           title="Edit in Side Drawer"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setProductToDelete(product)}
-                          className="p-1.5 text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-gray-200 transition cursor-pointer"
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded border border-rose-300 transition cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1319,46 +1203,31 @@ function ProductFormDrawer({
   );
 
   const availableCategories = useMemo(() => {
-    return allCategories
-      .filter((c) => c.division === division && c.status !== "Inactive")
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    return allCategories.filter((c) => c.division === division);
   }, [allCategories, division]);
 
-  // Default to empty string for add mode so "-- Select Category --" is always the default option
   const [categoryName, setCategoryName] = useState(
     initialData?.categoryTitle ||
       initialData?.categoryName ||
-      ""
+      availableCategories[0]?.name ||
+      "Tactical Systems"
   );
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [customCategoryInput, setCustomCategoryInput] = useState("");
 
   const [name, setName] = useState(initialData?.name || "");
   const [id, setId] = useState(initialData?.id || "");
 
-  const slugify = (text) => {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/[\s_]+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
-
-  const handleNameChange = (e) => {
-    const val = e.target.value;
-    setName(val);
-    if (mode === "add" || !initialData?.id) {
-      setId(slugify(val));
+  // Overview description: check if details has type: "text", else fallback to description
+  const initialOverview = useMemo(() => {
+    if (initialData?.details) {
+      const textSec = initialData.details.find((d) => d.type === "text");
+      if (textSec?.body) return textSec.body;
     }
-  };
+    return initialData?.description || "";
+  }, [initialData]);
 
-  const [description, setDescription] = useState(
-    initialData?.description || ""
-  );
+  const [description, setDescription] = useState(initialOverview);
   const [imageSrc, setImageSrc] = useState(
-    initialData?.imageSrc || ""
+    initialData?.imageSrc || PRESET_IMAGES[division]?.[0]?.value || "/images/aerospace-products/arrow.png"
   );
   const [imageFileName, setImageFileName] = useState("");
   const [imageSourceMode, setImageSourceMode] = useState("upload"); // 'upload' | 'preset' | 'url'
@@ -1372,25 +1241,42 @@ function ProductFormDrawer({
     if (initialData?.details) {
       const grid = initialData.details.find((d) => d.type === "spec-grid");
       if (grid?.items?.length) {
-        return grid.items.map((it) => ({ label: it.label || "", value: it.value || "" }));
+        return grid.items.map((it) => ({ label: it.label, value: it.value }));
       }
     }
     return [];
   }, [initialData]);
 
   const [specs, setSpecs] = useState(initialSpecs);
+
+  // Dynamic Feature Lists (e.g. "Other features", "Delivery Time" with bullet points)
+  const initialFeatureLists = useMemo(() => {
+    if (initialData?.details) {
+      const lists = initialData.details.filter((d) => d.type === "list");
+      if (lists?.length) {
+        return lists.map((l) => ({
+          title: l.title || "Other features",
+          items: Array.isArray(l.items) ? [...l.items] : [""],
+        }));
+      }
+    }
+    return [];
+  }, [initialData]);
+
+  const [featureLists, setFeatureLists] = useState(initialFeatureLists);
+  const [selectedDropdownParam, setSelectedDropdownParam] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleDivisionToggle = (newDiv) => {
     setDivision(newDiv);
-    // Always reset category selection to default placeholder when switching division
-    setCategoryName("");
-    setIsCustomCategory(false);
-    setCustomCategoryInput("");
-    setErrorMsg("");
-    if (imageSourceMode === "preset") {
-      setImageSrc(PRESET_IMAGES[newDiv]?.[0]?.value || "");
-      setImageFileName(PRESET_IMAGES[newDiv]?.[0]?.label || "");
+    const newCats = allCategories.filter((c) => c.division === newDiv);
+    if (newCats.length > 0) {
+      setCategoryName(newCats[0]?.name || `${newDiv} Equipment`);
+    } else {
+      setCategoryName(`${newDiv} Systems`);
+    }
+    if (mode === "add" && imageSourceMode === "preset") {
+      setImageSrc(PRESET_IMAGES[newDiv]?.[0]?.value || "/images/aerospace-products/arrow.png");
     }
   };
 
@@ -1451,9 +1337,54 @@ function ProductFormDrawer({
     }
   };
 
-  // Specifications Handlers
-  const handleAddSpecRow = () => {
-    setSpecs([...specs, { label: "", value: "" }]);
+  // Specifications Handlers (Dynamic Key Specifications per product)
+  const handleAddSpecRow = (customLabel = "") => {
+    setSpecs((prev) => [...prev, { label: customLabel, value: "" }]);
+  };
+
+  const handleAddSuggestedSpec = (label) => {
+    if (!specs.some((s) => s.label.trim().toLowerCase() === label.trim().toLowerCase())) {
+      setSpecs((prev) => [...prev, { label, value: "" }]);
+    }
+  };
+
+  const handleSelectAllSuggested = () => {
+    const currentList = SUGGESTED_SPECS[division] || SUGGESTED_SPECS.Aerospace;
+    const existingLabels = new Set(specs.map((s) => s.label.trim().toLowerCase()));
+    const toAdd = currentList
+      .filter((param) => !existingLabels.has(param.toLowerCase()))
+      .map((param) => ({ label: param, value: "" }));
+    if (toAdd.length > 0) {
+      setSpecs((prev) => [...prev, ...toAdd]);
+    }
+  };
+
+  const handleDropdownParamChange = (e) => {
+    const val = e.target.value;
+    if (!val) return;
+    if (val === "__SELECT_ALL__") {
+      handleSelectAllSuggested();
+    } else {
+      handleAddSuggestedSpec(val);
+    }
+    setSelectedDropdownParam("");
+  };
+
+  const handleLoadDronePreset = () => {
+    const preset = AEROSPACE_DRONE_PRESET.map((lbl) => {
+      const existing = specs.find((s) => s.label.trim().toLowerCase() === lbl.toLowerCase());
+      return { label: lbl, value: existing ? existing.value : "" };
+    });
+    setSpecs(preset);
+  };
+
+  const handleMoveSpec = (index, direction) => {
+    const targetIdx = direction === "up" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= specs.length) return;
+    const updated = [...specs];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIdx, 0, moved);
+    setSpecs(updated);
   };
 
   const handleSpecChange = (index, field, value) => {
@@ -1466,117 +1397,121 @@ function ProductFormDrawer({
     setSpecs(specs.filter((_, i) => i !== index));
   };
 
+  const handleClearAllSpecs = () => {
+    setSpecs([]);
+  };
+
+  // Feature Lists Handlers (e.g. Other Features, Delivery Time with Bullet Points)
+  const handleAddFeatureListSection = (defaultTitle = "Other features") => {
+    setFeatureLists((prev) => [
+      ...prev,
+      { title: defaultTitle, items: [""] },
+    ]);
+  };
+
+  const handleRemoveFeatureListSection = (sectionIndex) => {
+    setFeatureLists((prev) => prev.filter((_, idx) => idx !== sectionIndex));
+  };
+
+  const handleFeatureListTitleChange = (sectionIndex, newTitle) => {
+    const updated = [...featureLists];
+    updated[sectionIndex].title = newTitle;
+    setFeatureLists(updated);
+  };
+
+  const handleAddFeatureListItem = (sectionIndex) => {
+    const updated = [...featureLists];
+    updated[sectionIndex].items = [...(updated[sectionIndex].items || []), ""];
+    setFeatureLists(updated);
+  };
+
+  const handleFeatureListItemChange = (sectionIndex, itemIndex, val) => {
+    const updated = [...featureLists];
+    const items = [...updated[sectionIndex].items];
+    items[itemIndex] = val;
+    updated[sectionIndex].items = items;
+    setFeatureLists(updated);
+  };
+
+  const handleRemoveFeatureListItem = (sectionIndex, itemIndex) => {
+    const updated = [...featureLists];
+    updated[sectionIndex].items = updated[sectionIndex].items.filter(
+      (_, idx) => idx !== itemIndex
+    );
+    setFeatureLists(updated);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    setErrorMsg("");
-
-    // 1. Mandatory Target Division check
-    if (!division || !division.trim()) {
-      setErrorMsg("Target Division is required.");
+    if (!name.trim()) {
+      setErrorMsg("Product name is required.");
       return;
     }
 
-    // 2. Mandatory Product Name check & sanitization
-    const sanitizedName = name.trim();
-    if (!sanitizedName) {
-      setErrorMsg("Product Name is required.");
-      return;
-    }
-    if (sanitizedName.length < 2) {
-      setErrorMsg("Product Name must be at least 2 characters.");
-      return;
-    }
-    if (sanitizedName.length > 120) {
-      setErrorMsg("Product Name must not exceed 120 characters.");
-      return;
-    }
+    const cleanCatName = categoryName.trim() || `${division} Systems`;
+    const cleanCatId = cleanCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    // 3. Mandatory Category / Subcategory check
-    const finalCategoryName = (
-      isCustomCategory ? customCategoryInput : categoryName
-    ).trim();
-
-    if (!finalCategoryName) {
-      setErrorMsg("Please select a Category / Subcategory.");
-      return;
-    }
-
-    // Resolve Category ID and Display Title
-    const matchedCat = availableCategories.find(
-      (c) =>
-        c.name.toLowerCase() === finalCategoryName.toLowerCase() ||
-        c.id.toLowerCase() === finalCategoryName.toLowerCase()
+    const validSpecs = specs.filter(
+      (s) => s.label.trim() !== "" && s.value.trim() !== ""
     );
 
-    const cleanCatId =
-      matchedCat?.id ||
-      finalCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-    const cleanCatName = matchedCat?.name || finalCategoryName;
-    const cleanCatTitle = matchedCat
-      ? matchedCat.number
-        ? `${matchedCat.number}. ${matchedCat.name}`
-        : matchedCat.name
-      : finalCategoryName;
+    const payloadDetails = [];
 
-    // 4. Sanitize Optional Product ID / SKU Slug
-    let cleanId = undefined;
-    if (id.trim()) {
-      cleanId = id
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+    // 1. Overview text (shown under OVERVIEW in modal)
+    if (description.trim()) {
+      payloadDetails.push({
+        type: "text",
+        title: "Overview",
+        body: description.trim(),
+      });
     }
 
-    // 5. Mandatory Product Image resolution & fallback
-    let finalImageSrc = imageSrc.trim();
-    if (!finalImageSrc) {
-      if (imageSourceMode === "preset" && PRESET_IMAGES[division]?.[0]?.value) {
-        finalImageSrc = PRESET_IMAGES[division][0].value;
-      } else {
-        finalImageSrc =
-          division === "Aerospace"
-            ? "/images/aerospace-products/arrow.png"
-            : "/images/2. Defence Page/Abhedya-Level-III-Helmet.png";
+    // 2. Key Specifications
+    if (validSpecs.length > 0) {
+      payloadDetails.push({
+        type: "spec-grid",
+        items: validSpecs,
+      });
+    }
+
+    // 3. Dynamic Feature Lists & Bullet Points (e.g. Other Features, Delivery Time)
+    featureLists.forEach((listSec) => {
+      const validItems = (listSec.items || [])
+        .map((it) => it.trim())
+        .filter((it) => it.length > 0);
+      if (listSec.title?.trim() && validItems.length > 0) {
+        payloadDetails.push({
+          type: "list",
+          title: listSec.title.trim(),
+          items: validItems,
+        });
       }
-    }
+    });
 
-    // 6. Sanitize Optional Description
-    const sanitizedDesc = description.trim();
-
-    // 7. Sanitize Optional Specifications
-    const validSpecs = specs
-      .map((s) => ({ label: s.label.trim(), value: s.value.trim() }))
-      .filter((s) => s.label !== "" || s.value !== "");
-
-    const incompleteSpec = validSpecs.find((s) => !s.label || !s.value);
-    if (incompleteSpec) {
-      setErrorMsg("All added technical specification rows must include both a Parameter Name and a Value.");
-      return;
+    if (payloadDetails.length === 0) {
+      payloadDetails.push({
+        type: "text",
+        title: "Overview",
+        body: `${name} tactical specification profile.`,
+      });
     }
 
     const productPayload = {
-      id: cleanId,
-      name: sanitizedName,
-      description: sanitizedDesc || `${sanitizedName} engineered for tactical defence readiness.`,
-      imageSrc: finalImageSrc,
-      imageAlt: sanitizedName,
+      id: id.trim() || undefined,
+      name: name.trim(),
+      description: description.trim() || `${name} engineered for tactical defence readiness.`,
+      imageSrc:
+        imageSrc.trim() ||
+        (division === "Aerospace"
+          ? "/images/aerospace-products/arrow.png"
+          : "/images/2. Defence Page/Abhedya-Level-III-Helmet.png"),
+      imageAlt: name.trim(),
       division,
       categoryId: cleanCatId,
-      categoryTitle: cleanCatTitle,
+      categoryTitle: cleanCatName,
       categoryName: cleanCatName,
       status,
-      details: [
-        {
-          type: "spec-grid",
-          items: validSpecs,
-        },
-        {
-          type: "text",
-          title: "Overview",
-          body: sanitizedDesc || `${sanitizedName} tactical specification profile.`,
-        },
-      ],
+      details: payloadDetails,
     };
 
     onSubmit(productPayload);
@@ -1666,7 +1601,7 @@ function ProductFormDrawer({
                 <input
                   type="text"
                   value={name}
-                  onChange={handleNameChange}
+                  onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="e.g. Garuda UAV / Vajra Armor"
                   className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
@@ -1674,21 +1609,15 @@ function ProductFormDrawer({
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-                    Product ID / Slug
-                  </label>
-                  <span className="text-[10px] text-gray-500 font-medium flex items-center gap-1 bg-gray-100 px-1.5 py-0.5 rounded">
-                    <span>🔒</span> Auto-generated
-                  </span>
-                </div>
+                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
+                  Product ID / SKU Slug
+                </label>
                 <input
                   type="text"
                   value={id}
-                  disabled
-                  readOnly
-                  placeholder="Auto-generated from name"
-                  className="w-full px-3 py-2 bg-gray-100/90 text-gray-600 border border-gray-200 rounded-lg font-mono text-xs cursor-not-allowed select-none"
+                  onChange={(e) => setId(e.target.value)}
+                  placeholder="Auto-generated if empty"
+                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white font-mono text-xs transition"
                 />
               </div>
             </div>
@@ -1697,58 +1626,21 @@ function ProductFormDrawer({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Category / Subcategory *
+                  Category / Sub-Line *
                 </label>
-                <select
-                  value={isCustomCategory ? "__custom__" : categoryName}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "__custom__") {
-                      setIsCustomCategory(true);
-                      setCategoryName("");
-                    } else {
-                      setIsCustomCategory(false);
-                      setCategoryName(val);
-                    }
-                    setErrorMsg("");
-                  }}
-                  className={`w-full px-3 py-2 bg-[#f8fafc] border rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition cursor-pointer ${
-                    !categoryName && !isCustomCategory
-                      ? "text-gray-400 border-gray-300"
-                      : "text-gray-900 border-gray-200 font-medium"
-                  }`}
-                >
-                  <option value="" disabled className="text-gray-400">
-                    -- Select Category --
-                  </option>
+                <input
+                  type="text"
+                  list="drawer-category-suggestions"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                  placeholder="e.g. UAV Systems / Ballistic Protection"
+                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
+                />
+                <datalist id="drawer-category-suggestions">
                   {availableCategories.map((cat) => (
-                    <option key={cat.id || cat._id} value={cat.name} className="text-gray-900 font-normal">
-                      {cat.number ? `${cat.number}. ` : ""}{cat.name}
-                    </option>
+                    <option key={cat.id} value={cat.name} />
                   ))}
-                  <option value="__custom__" className="text-[#105784] font-semibold">
-                    + Enter Custom Category...
-                  </option>
-                </select>
-
-                {isCustomCategory && (
-                  <div className="mt-2 space-y-1">
-                    <input
-                      type="text"
-                      value={customCategoryInput}
-                      onChange={(e) => {
-                        setCustomCategoryInput(e.target.value);
-                        setErrorMsg("");
-                      }}
-                      placeholder="Enter custom subcategory title..."
-                      required
-                      className="w-full px-3 py-2 bg-[#f8fafc] border border-[#105784] rounded-lg focus:outline-none focus:bg-white text-xs transition"
-                    />
-                    <p className="text-[10px] text-gray-400">
-                      Type custom subcategory title to save under {division}
-                    </p>
-                  </div>
-                )}
+                </datalist>
               </div>
 
               <div>
@@ -1966,57 +1858,161 @@ function ProductFormDrawer({
               )}
             </div>
 
-            {/* 5. Description / Overview */}
-            <div>
-              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Description & Mission Role
+            {/* 5. Product Overview / Description (No Title Input, only Description with Rich Placeholder) */}
+            <div className="space-y-1">
+              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider">
+                Product Overview / Description
               </label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tactical overview, mission capability, and field deployment parameters..."
+                placeholder="Overview description (e.g. Agri Hawk is a 10-litre agriculture spraying hexacopter designed for autonomous or manual operation. Smart terrain and obstacle-avoidance sensors, integrated live video, and automated failsafes support safer, more efficient field coverage while reducing farmers' direct contact with chemicals...)"
                 className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
               />
             </div>
 
-            {/* 6. Dynamic Technical Specifications (blank by default) */}
-            <div className="space-y-2 pt-2 border-t border-gray-100">
-              <div className="flex items-center justify-between">
+            {/* 6. Dynamic Key Specifications (Custom per product) */}
+            <div className="space-y-3 pt-3 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-                    Technical Specifications
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
+                      Key Specifications
+                    </label>
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#105784]/10 text-[#105784]">
+                      {specs.length} {specs.length === 1 ? "spec" : "specs"}
+                    </span>
+                  </div>
                   <p className="text-[10px] text-gray-400">
-                    Add custom parameter key-value pairs (e.g. Weight, Range, Speed)
+                    Custom specifications for this product (e.g. Arrow Drone, Ranger Drone). Each product has its own unique specs.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddSpecRow}
-                  className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Spec</span>
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  {division === "Aerospace" && (
+                    <button
+                      type="button"
+                      onClick={handleLoadDronePreset}
+                      className="px-2 py-1 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                      title="Pre-populate common drone specs (Take off weight, Wingspan, Cruise Speed, etc.)"
+                    >
+                      <Sparkles className="w-3 h-3 text-amber-600" />
+                      <span>Fill Drone Specs</span>
+                    </button>
+                  )}
+                  {specs.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllSpecs}
+                      className="px-2 py-1 text-[11px] font-medium text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 rounded-lg transition cursor-pointer"
+                      title="Clear all specifications"
+                    >
+                      Clear
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleAddSpecRow("")}
+                    className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add Custom Spec</span>
+                  </button>
+                </div>
               </div>
 
+              {/* Dropdown for Suggested Parameters with Select All */}
+              {SUGGESTED_SPECS[division]?.length > 0 && (
+                <div className="p-3 bg-slate-50 border border-slate-200/90 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
+                      Suggested Parameters Dropdown ({division})
+                    </label>
+                    <span className="text-[10px] text-gray-400">
+                      Choose parameter or Select All
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedDropdownParam}
+                      onChange={handleDropdownParamChange}
+                      className="flex-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-800 focus:outline-none focus:border-[#105784] cursor-pointer"
+                    >
+                      <option value="">-- Select parameter to add --</option>
+                      <option value="__SELECT_ALL__" className="font-bold text-[#105784]">
+                        ⚡ Select All ({SUGGESTED_SPECS[division].length} Parameters)
+                      </option>
+                      {SUGGESTED_SPECS[division].map((param) => {
+                        const isAdded = specs.some(
+                          (s) => s.label.trim().toLowerCase() === param.toLowerCase()
+                        );
+                        return (
+                          <option key={param} value={param} disabled={isAdded}>
+                            {isAdded ? `✓ ${param} (Already Added)` : `+ ${param}`}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={handleSelectAllSuggested}
+                      className="px-3 py-1.5 text-xs font-semibold text-[#105784] bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition whitespace-nowrap cursor-pointer"
+                      title="Add all suggested parameters at once"
+                    >
+                      Select All
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Spec Rows */}
               {specs.length === 0 ? (
-                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center text-gray-400 text-xs">
-                  No technical specifications added yet. Click &quot;+ Add Spec&quot; to add custom parameters.
+                <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center space-y-2">
+                  <p className="text-xs text-gray-500">
+                    No specifications added for this product yet.
+                  </p>
+                  <p className="text-[11px] text-gray-400">
+                    Choose from the dropdown above, click &quot;Select All&quot;, or click &quot;+ Add Custom Spec&quot;.
+                  </p>
+                  <div className="pt-1 flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAddSpecRow("")}
+                      className="px-3 py-1.5 text-xs font-semibold text-[#105784] bg-white border border-sky-200 rounded-lg hover:bg-sky-50 transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Custom Parameter</span>
+                    </button>
+                    {division === "Aerospace" && (
+                      <button
+                        type="button"
+                        onClick={handleLoadDronePreset}
+                        className="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition cursor-pointer flex items-center gap-1"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Load Drone Specs</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {specs.map((spec, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                    <div
+                      key={index}
+                      className="flex items-center gap-1.5 p-2 bg-[#f8fafc] border border-gray-200 rounded-lg hover:border-gray-300 transition"
+                    >
+                      <span className="text-[10px] font-bold text-gray-400 w-5 text-center shrink-0">
+                        #{index + 1}
+                      </span>
                       <input
                         type="text"
                         value={spec.label}
                         onChange={(e) =>
                           handleSpecChange(index, "label", e.target.value)
                         }
-                        placeholder="Spec Name (e.g. Weight)"
-                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
+                        placeholder="Spec Name (e.g. Wingspan, Cruise Speed)"
+                        className="flex-1 min-w-[130px] px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs font-medium text-gray-800 placeholder-gray-400"
                       />
                       <input
                         type="text"
@@ -2024,17 +2020,158 @@ function ProductFormDrawer({
                         onChange={(e) =>
                           handleSpecChange(index, "value", e.target.value)
                         }
-                        placeholder="Value (e.g. 15 kg)"
-                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
+                        placeholder="Value (e.g. 1700 mm, 25 m/sec)"
+                        className="flex-1 min-w-[130px] px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs text-gray-800 placeholder-gray-400"
                       />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSpec(index)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer"
-                        title="Remove spec"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveSpec(index, "up")}
+                          disabled={index === 0}
+                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded transition cursor-pointer disabled:cursor-default"
+                          title="Move up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveSpec(index, "down")}
+                          disabled={index === specs.length - 1}
+                          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded transition cursor-pointer disabled:cursor-default"
+                          title="Move down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSpec(index)}
+                          className="p-1 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer ml-1"
+                          title="Delete specification"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 7. Dynamic Feature Lists & Bullet Points (e.g. Other Features, Delivery Time) */}
+            <div className="space-y-3 pt-3 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-[11px] font-bold text-gray-800 uppercase tracking-wider">
+                      Feature Lists & Bullet Points
+                    </label>
+                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#105784]/10 text-[#105784]">
+                      {featureLists.length} {featureLists.length === 1 ? "section" : "sections"}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    Custom list points with section title (e.g. &quot;OTHER FEATURES&quot; or &quot;DELIVERY TIME&quot; as on 5-inch FPV Drone).
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => handleAddFeatureListSection("Other features")}
+                    className="px-2 py-1 text-[11px] font-medium text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition cursor-pointer"
+                  >
+                    + &quot;Other Features&quot;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddFeatureListSection("Delivery Time")}
+                    className="px-2 py-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition cursor-pointer"
+                  >
+                    + &quot;Delivery Time&quot;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddFeatureListSection("")}
+                    className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add List Section</span>
+                  </button>
+                </div>
+              </div>
+
+              {featureLists.length === 0 ? (
+                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center text-xs text-gray-400">
+                  No feature bullet lists added yet. Click &quot;+ Other Features&quot; or &quot;+ Delivery Time&quot; if this product has bullet points.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {featureLists.map((listSec, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className="p-3 bg-slate-50/80 border border-gray-200 rounded-xl space-y-2.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
+                            List Section Title #{sIdx + 1}
+                          </label>
+                          <input
+                            type="text"
+                            value={listSec.title}
+                            onChange={(e) =>
+                              handleFeatureListTitleChange(sIdx, e.target.value)
+                            }
+                            placeholder="e.g. Other features, Delivery Time, Tactical Highlights"
+                            className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] text-xs font-semibold text-gray-800"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFeatureListSection(sIdx)}
+                          className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer shrink-0 mt-3"
+                          title="Delete entire list section"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Bullet points */}
+                      <div className="space-y-1.5 pl-2 border-l-2 border-[#105784]/30">
+                        <label className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider block">
+                          Bullet Points:
+                        </label>
+                        {(listSec.items || []).map((bullet, bIdx) => (
+                          <div key={bIdx} className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#105784] shrink-0" />
+                            <input
+                              type="text"
+                              value={bullet}
+                              onChange={(e) =>
+                                handleFeatureListItemChange(sIdx, bIdx, e.target.value)
+                              }
+                              placeholder="e.g. Battery: Li-Ion 4s (2600 mAh) or Up to 3 units - 7 days"
+                              className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 rounded-md focus:outline-none focus:border-[#105784] text-xs text-gray-800"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFeatureListItem(sIdx, bIdx)}
+                              className="p-1 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer"
+                              title="Remove bullet point"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => handleAddFeatureListItem(sIdx)}
+                          className="mt-1 px-2 py-1 text-[11px] font-medium text-[#105784] hover:bg-sky-50 rounded transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Add Bullet Point</span>
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
