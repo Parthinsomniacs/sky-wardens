@@ -807,21 +807,24 @@ export default function ProductsPage({
                       </td>
                       <td className="py-3 px-4">
                         {specItems.length > 0 ? (
-                          <div className="text-[11px] text-gray-600 space-y-0.5">
+                          <div className="flex flex-col gap-1 max-w-xs">
                             {specItems.slice(0, 2).map((s, idx) => (
-                              <div key={`${product.id || product._id || 'tbl'}-spec-${idx}`} className="whitespace-nowrap">
-                                <span className="text-gray-400">
-                                  {s.label}:{" "}
+                              <div
+                                key={`${product.id || product._id || 'tbl'}-spec-${idx}`}
+                                className="inline-flex items-center gap-1.5 text-[11px] bg-slate-50 border border-slate-200/80 rounded px-1.5 py-0.5 leading-tight"
+                              >
+                                <span className="text-gray-500 font-medium whitespace-nowrap">
+                                  {s.label}:
                                 </span>
-                                <span className="font-semibold text-gray-800">
+                                <span className="font-bold text-gray-800 truncate">
                                   {s.value}
                                 </span>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-[11px]">
-                            Standard
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-400 font-mono">
+                            —
                           </span>
                         )}
                       </td>
