@@ -46,6 +46,6 @@ router.patch(
   toggleProductStatus
 );
 
-router.delete("/:id", protect, superAdminOnly, deleteProduct);
+router.delete("/:id", protect, authorize("Super Admin", "Admin"), deleteProduct);
 
 module.exports = router;

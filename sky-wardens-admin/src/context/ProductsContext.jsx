@@ -338,11 +338,12 @@ export function ProductsProvider({ children }) {
 
   const toggleProductStatus = async (id) => {
     try {
-      await productsApi.toggleStatus(id);
+      const res = await productsApi.toggleStatus(id);
+      const serverStatus = res?.status || res?.product?.status;
       setProducts((prev) =>
         prev.map((p) => {
           if (p.id === id || p._id === id) {
-            const nextStatus = p.status === "Inactive" ? "Active" : "Inactive";
+            const nextStatus = serverStatus || (p.status === "Inactive" ? "Active" : "Inactive");
             return {
               ...p,
               status: nextStatus,
@@ -352,6 +353,7 @@ export function ProductsProvider({ children }) {
           return p;
         })
       );
+      return serverStatus;
     } catch (err) {
       console.error("Backend error toggling product status:", err);
       setProducts((prev) =>

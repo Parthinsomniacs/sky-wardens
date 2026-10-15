@@ -114,10 +114,18 @@ function AppContent() {
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" ");
       }
+      const isDivisionSpecific =
+        currentTab === "products-aerospace"
+          ? "Aerospace"
+          : currentTab === "products-defence"
+          ? "Defence"
+          : null;
+
       return (
         <ProductsPage
           key={currentTab}
           initialDivision={initialDivision}
+          lockedDivision={isDivisionSpecific}
           onNavigateTab={handleTabChange}
         />
       );

@@ -1,20 +1,26 @@
 const { z } = require("zod");
 
-const detailItemSchema = z
-  .object({
+const detailItemSchema = z.union([
+  z.object({
     label: z.string().optional().default(""),
     value: z.string().optional().default(""),
-  })
-  .strict();
+  }),
+  z.string(),
+]);
+
+const tableRowSchema = z.object({
+  label: z.string().optional().default(""),
+  value: z.string().optional().default(""),
+});
 
 const productDetailSectionSchema = z
   .object({
-    type: z.enum(["spec-grid", "text", "features"]).optional().default("spec-grid"),
+    type: z.enum(["spec-grid", "text", "features", "table", "list"]).optional().default("spec-grid"),
     title: z.string().optional().default(""),
     body: z.string().optional().default(""),
     items: z.array(detailItemSchema).optional().default([]),
-  })
-  .strict();
+    rows: z.array(tableRowSchema).optional().default([]),
+  });
 
 const createProductSchema = z
   .object({

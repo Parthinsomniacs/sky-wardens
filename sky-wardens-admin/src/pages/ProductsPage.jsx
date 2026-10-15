@@ -25,38 +25,18 @@ import {
   Image as ImageIcon,
   Cpu,
   FlaskConical,
+  ChevronUp,
+  ChevronDown,
+  Sparkles,
 } from "lucide-react";
 import { useProducts } from "../context/ProductsContext";
-
-const PRESET_IMAGES = {
-  Aerospace: [
-    { label: "Arrow Tactical UAV", value: "/images/aerospace-products/arrow.png" },
-    { label: "Ranger Surveillance Drone", value: "/images/aerospace-products/ranger-drone.png" },
-    { label: "AeroViper High-Speed UAV", value: "/images/aerospace-products/aeroviper.png" },
-    { label: "SkyBlade Stealth Platform", value: "/images/aerospace-products/skyblade.png" },
-    { label: "Vanguard Tactical Radar", value: "/images/aerospace-products/vanguard-radar.png" },
-  ],
-  Defence: [
-    { label: "Abhedya Level III Helmet", value: "/images/2. Defence Page/Abhedya-Level-III-Helmet.png" },
-    { label: "Ballistic Helmet NIJ", value: "/images/2. Defence Page/Ballistic-Helmet-NIJ.png" },
-    { label: "Vajra Tactical Helmet", value: "/images/2. Defence Page/Vajra-Helmet.png" },
-    { label: "Anti-Spike Military Boots", value: "/images/2. Defence Page/Canvas-Jungle-Anti-Spike-Military-Boots.png" },
-    { label: "Shock Proof Tactical Gloves", value: "/images/2. Defence Page/Stun-Shock-Proof-Full-Finger-Military-Gloves.png" },
-    { label: "Shakti Tactical Armor Jacket", value: "/images/2. Defence Page/Shakti-Tactical-Jacket.png" },
-    { label: "Vajra Riot Control Suit", value: "/images/2. Defence Page/Vajra-Riot-Control-Suit.png" },
-    { label: "Dandd Stun Baton", value: "/images/2. Defence Page/Dandd-Stun-Baton.png" },
-  ],
-  "Advanced Systems": [
-    { label: "AeroViper Autonomous High-Speed UAV", value: "/images/aerospace-products/aeroviper.png" },
-    { label: "Vanguard Sensor Radar", value: "/images/aerospace-products/vanguard-radar.png" },
-    { label: "SkyBlade Stealth Frame", value: "/images/aerospace-products/skyblade.png" },
-  ],
-  Petrochemicals: [
-    { label: "Jet Turbine Fuel Standard", value: "/images/aerospace-products/arrow.png" },
-    { label: "Shakti Ballistic Polymer Armor", value: "/images/2. Defence Page/Shakti-Tactical-Jacket.png" },
-    { label: "Tactical Defense Mechanism Lubricant", value: "/images/2. Defence Page/Dandd-Stun-Baton.png" },
-  ],
-};
+import ProductFormDrawer from "../components/products/ProductFormDrawer";
+import ProductDetailInspectModal from "../components/products/ProductDetailInspectModal";
+import {
+  AEROSPACE_CATEGORIES,
+  PRESET_IMAGES,
+  SUGGESTED_SPECS,
+} from "../components/products/aerospaceTemplates";
 
 const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
   switch (name) {
@@ -74,7 +54,8 @@ const renderDivisionIcon = (name, className = "w-3.5 h-3.5") => {
 };
 
 export default function ProductsPage({
-  initialDivision = "Aerospace",
+  initialDivision = "All",
+  lockedDivision = null,
   onNavigateTab,
 }) {
   const {
@@ -88,12 +69,14 @@ export default function ProductsPage({
     resetCatalog,
   } = useProducts();
 
-  const [activeDivision, setActiveDivision] = useState(initialDivision);
+  const [activeDivision, setActiveDivision] = useState(
+    lockedDivision || initialDivision
+  );
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all"); // 'all' | 'Active' | 'Inactive'
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("grid"); // 'grid' | 'table'
+  const [viewMode, setViewMode] = useState("table"); // default to list/table view
 
   // Side Drawer & Modals state
   const [showAddDrawer, setShowAddDrawer] = useState(false); // Add Sidebar Drawer
@@ -112,22 +95,50 @@ export default function ProductsPage({
 
   const ITEMS_PER_PAGE = 10;
 
-  // Active division products from dynamic products
+  // Active division products from dynamic products (supports All)
   const currentProducts = useMemo(() => {
+    if (!activeDivision || activeDivision === "All" || activeDivision === "all") {
+      return products;
+    }
     return products.filter((p) => p.division === activeDivision);
   }, [products, activeDivision]);
 
-  // Active categories definition dynamically from context
-  const currentCategoryDefinitions = useMemo(() => {
-    return categories.filter((c) => c.division === activeDivision);
+  // Temporarily hide Advanced Systems and Petrochemicals, leaving the 2 main divisions (Aerospace & Defence)
+  const visibleDivisions = useMemo(() => {
+    return divisions.filter((d) => {
+      const name = d.name?.toLowerCase().trim();
+      const slug = d.slug?.toLowerCase().trim();
+      return (
+        name !== "advanced systems" &&
+        name !== "petrochemicals" &&
+        slug !== "advanced-systems" &&
+        slug !== "petrochemicals" &&
+        d.status !== "Inactive"
+      );
+    });
+  }, [divisions]);
+
+  // Active categories definition dynamically from context or fallback
+  const activeCategoriesList = useMemo(() => {
+    if (activeDivision === "Aerospace") {
+      const fromContext = categories.filter((c) => c.division === "Aerospace");
+      if (fromContext.length > 0) return fromContext;
+      return AEROSPACE_CATEGORIES;
+    }
+    if (activeDivision === "Defence") {
+      return categories.filter((c) => c.division === "Defence");
+    }
+    return categories;
   }, [categories, activeDivision]);
 
   // Compute live product counts per category in this division
   const categoryCounts = useMemo(() => {
     const counts = {};
     currentProducts.forEach((p) => {
-      const catId = p.categoryId;
-      counts[catId] = (counts[catId] || 0) + 1;
+      const cTitle = p.categoryTitle || p.categoryName || "";
+      const cId = p.categoryId || "";
+      if (cId) counts[cId] = (counts[cId] || 0) + 1;
+      if (cTitle) counts[cTitle] = (counts[cTitle] || 0) + 1;
     });
     return counts;
   }, [currentProducts]);
@@ -146,8 +157,15 @@ export default function ProductsPage({
   const filteredProducts = useMemo(() => {
     return currentProducts.filter((p) => {
       // Category filter
+      const pCatName = (p.categoryTitle || p.categoryName || "").toLowerCase().trim();
+      const pCatId = (p.categoryId || "").toLowerCase().trim();
+      const targetCat = selectedCategory.toLowerCase().trim();
+
       const matchesCategory =
-        selectedCategory === "all" || p.categoryId === selectedCategory;
+        selectedCategory === "all" ||
+        pCatId === targetCat ||
+        pCatName === targetCat ||
+        pCatId.replace(/[^a-z0-9]/g, "") === targetCat.replace(/[^a-z0-9]/g, "");
 
       // Status filter
       const pStatus = p.status || "Active";
@@ -162,7 +180,7 @@ export default function ProductsPage({
         p.name.toLowerCase().includes(q) ||
         p.description?.toLowerCase().includes(q) ||
         (p.categoryTitle && p.categoryTitle.toLowerCase().includes(q)) ||
-        p.id.toLowerCase().includes(q);
+        (p.id && p.id.toLowerCase().includes(q));
 
       return matchesCategory && matchesStatus && matchesSearch;
     });
@@ -182,23 +200,27 @@ export default function ProductsPage({
     setSearchQuery("");
     setCurrentPage(1);
     if (onNavigateTab) {
-      const slug =
-        newDivision === "Aerospace"
-          ? "products-aerospace"
-          : newDivision === "Defence"
-          ? "products-defence"
-          : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-      onNavigateTab(slug);
+      if (newDivision === "All" || newDivision === "all") {
+        onNavigateTab("products");
+      } else {
+        const slug =
+          newDivision === "Aerospace"
+            ? "products-aerospace"
+            : newDivision === "Defence"
+            ? "products-defence"
+            : `products-${newDivision.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        onNavigateTab(slug);
+      }
     }
   };
 
   const handleToggleStatus = async (p) => {
-    const newStatus = p.status === "Inactive" ? "Active" : "Inactive";
     try {
-      await toggleProductStatus(p.id || p._id);
-      triggerToast(`"${p.name}" status changed to ${newStatus}.`);
+      const serverStatus = await toggleProductStatus(p.id || p._id);
+      const resultingStatus = serverStatus || (p.status === "Inactive" ? "Active" : "Inactive");
+      triggerToast(`"${p.name}" status changed to ${resultingStatus}.`);
       if (selectedProduct && (selectedProduct.id === p.id || selectedProduct._id === p._id)) {
-        setSelectedProduct((prev) => ({ ...prev, status: newStatus }));
+        setSelectedProduct((prev) => ({ ...prev, status: resultingStatus }));
       }
     } catch (err) {
       triggerToast(err.message || "Failed to update product status.");
@@ -275,84 +297,24 @@ export default function ProductsPage({
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-            <span>Catalog Management</span>
-            <span>/</span>
-            <span className="font-bold text-[#105784]">
-              {activeDivision} Products
-            </span>
-          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-[#1c232f]">
-            Products Catalog & Inventory
+            {activeDivision === "All" || activeDivision === "all"
+              ? "All Products"
+              : `${activeDivision} Products`}
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage equipment across all divisions, upload imagery, and toggle
-            active/inactive status.
+            Manage equipment catalog, upload imagery, and toggle active/inactive status.
           </p>
         </div>
 
-        {/* Division Switch & Actions */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Dynamic Division Switch Pills from Master */}
-          {divisions.length > 0 && (
-            <div className="bg-white p-1 rounded-xl border border-[#e2e8f0] shadow-2xs flex items-center gap-1 overflow-x-auto max-w-full">
-              {divisions.map((div, divIdx) => {
-                const isSelected = activeDivision === div.name;
-                const count = products.filter((p) => p.division === div.name).length;
-
-                return (
-                  <button
-                    key={div.id || div._id || div.slug || div.name || `div-${divIdx}`}
-                    onClick={() => handleDivisionChange(div.name)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap ${
-                      isSelected
-                        ? "bg-[#105784] text-white shadow-2xs"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
-                  >
-                    {renderDivisionIcon(div.name, "w-3.5 h-3.5")}
-                    <span>{div.name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Add Product Button (Opens Right Sidebar Drawer) */}
+        {/* Action: Only New Product Button (Opens Right Sidebar Drawer) */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAddDrawer(true)}
-            className="px-3.5 py-2 bg-[#105784] hover:bg-[#0c476c] text-white text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+            className="px-4 py-2.5 bg-[#105784] hover:bg-[#0c476c] text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xs hover:shadow-sm transition flex items-center gap-2 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Product</span>
-          </button>
-
-          {/* Export CSV Button */}
-          <button
-            onClick={handleExportCSV}
-            className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-[#ced4da] text-xs font-semibold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
-            title="Export Products to CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-gray-500" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-
-          {/* Reset to Default Button */}
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="p-2 bg-white hover:bg-gray-50 text-gray-400 hover:text-gray-600 border border-[#ced4da] rounded-xl shadow-2xs transition cursor-pointer"
-            title="Reset Catalog to Default"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <span>New Product</span>
           </button>
         </div>
       </div>
@@ -362,7 +324,7 @@ export default function ProductsPage({
         {/* Total in Division */}
         <div className="bg-white rounded-xl p-4 border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] border-l-4 border-l-[#105784]">
           <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-            Total {activeDivision}
+            {activeDivision === "All" || activeDivision === "all" ? "Total Products" : `Total ${activeDivision}`}
           </span>
           <div className="text-2xl font-bold text-[#1c232f] mt-1">
             {currentProducts.length}
@@ -405,7 +367,7 @@ export default function ProductsPage({
             Categories
           </span>
           <div className="text-2xl font-bold text-sky-700 mt-1">
-            {currentCategoryDefinitions.length}
+            {activeCategoriesList.length}
           </div>
           <div className="text-[11px] text-gray-400 mt-1">
             Product lines & series
@@ -413,81 +375,11 @@ export default function ProductsPage({
         </div>
       </div>
 
-      {/* Main Filter & Category Bar */}
-      <div className="bg-white rounded-xl border border-[#e9ecef] shadow-[0_2px_6px_-1px_rgba(0,0,0,0.06)] p-4 sm:p-5 space-y-4">
-        {/* Category Pills Slider */}
-        <div>
-          <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-[#105784]" />
-              <span>Select Category / Line:</span>
-            </div>
-            <span className="text-[11px] text-gray-400">
-              Showing {filteredProducts.length} of {currentProducts.length}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => {
-                setSelectedCategory("all");
-                setCurrentPage(1);
-              }}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-                selectedCategory === "all"
-                  ? "bg-[#105784] text-white shadow-2xs"
-                  : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>All {activeDivision}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  selectedCategory === "all"
-                    ? "bg-white/20 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {currentProducts.length}
-              </span>
-            </button>
-
-            {currentCategoryDefinitions.map((cat, catIdx) => {
-              const count = categoryCounts[cat.id] || 0;
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id || cat._id || cat.name || `cat-${catIdx}`}
-                  onClick={() => {
-                    setSelectedCategory(cat.id);
-                    setCurrentPage(1);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? "bg-[#105784] text-white font-bold shadow-2xs"
-                      : "bg-[#f4f7fa] text-gray-700 hover:bg-gray-100 border border-[#e2e8f0]"
-                  }`}
-                >
-                  <span>{cat.name}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isSelected
-                        ? "bg-white/20 text-white"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Search Input, Status Filter & View Toggle */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-[#f1f4f8]">
+      {/* Unified Filter & Search Toolbar */}
+      <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-xs p-3.5 sm:p-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search box */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 min-w-[220px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -497,59 +389,96 @@ export default function ProductsPage({
                 setCurrentPage(1);
               }}
               placeholder={`Search ${activeDivision.toLowerCase()} by name, specs, or ID...`}
-              className="w-full pl-9 pr-3 py-2 text-xs bg-[#f8fafc] border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white transition"
+              className="w-full pl-9 pr-8 py-2 text-xs bg-[#f8fafc] border border-[#e2e8f0] rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white transition"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer p-0.5"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
+          {/* Filter Controls: Category Dropdown + Status Filter + Clear Button + View Mode */}
           <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-            {/* Status Filter Buttons */}
-            <div className="flex items-center gap-1 bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0]">
-              <button
-                onClick={() => {
-                  setStatusFilter("all");
+            {/* Category Dropdown */}
+            <div className="relative min-w-[190px]">
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className={`px-2.5 py-1 text-xs rounded-md font-semibold transition cursor-pointer ${
-                  statusFilter === "all"
-                    ? "bg-white text-gray-900 shadow-2xs"
-                    : "text-gray-500 hover:text-gray-800"
+                className={`w-full text-xs font-semibold px-3 py-2 border rounded-lg appearance-none bg-white pr-8 focus:outline-none focus:border-[#105784] cursor-pointer transition ${
+                  selectedCategory !== "all"
+                    ? "border-[#105784] text-[#105784] bg-sky-50/40 shadow-2xs"
+                    : "border-gray-200 text-gray-700 hover:border-gray-300"
                 }`}
               >
-                All Status
-              </button>
-              <button
-                onClick={() => {
-                  setStatusFilter("Active");
-                  setCurrentPage(1);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-semibold transition cursor-pointer ${
-                  statusFilter === "Active"
-                    ? "bg-emerald-600 text-white shadow-2xs"
-                    : "text-emerald-700 hover:bg-emerald-50"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
-                <span>Active ({activeCount})</span>
-              </button>
-              <button
-                onClick={() => {
-                  setStatusFilter("Inactive");
-                  setCurrentPage(1);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md font-semibold transition cursor-pointer ${
-                  statusFilter === "Inactive"
-                    ? "bg-amber-600 text-white shadow-2xs"
-                    : "text-amber-700 hover:bg-amber-50"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
-                <span>Inactive ({inactiveCount})</span>
-              </button>
+                <option value="all">All Categories</option>
+                {activeCategoriesList.map((cat, idx) => {
+                  const catNum = cat.number || String(idx + 1).padStart(2, "0");
+                  return (
+                    <option key={cat.id || idx} value={cat.id || cat.name}>
+                      {catNum}. {cat.name}
+                    </option>
+                  );
+                })}
+              </select>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 flex items-center">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
             </div>
 
-            {/* View Mode Switcher */}
-            <div className="bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0] flex items-center">
+            {/* Status Dropdown */}
+            <div className="relative min-w-[130px]">
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={`w-full text-xs font-semibold px-3 py-2 border rounded-lg appearance-none bg-white pr-8 focus:outline-none focus:border-[#105784] cursor-pointer transition ${
+                  statusFilter !== "all"
+                    ? "border-[#105784] text-[#105784] bg-sky-50/40 shadow-2xs"
+                    : "border-gray-200 text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <option value="all">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 flex items-center">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
+            </div>
+
+            {/* Reset / Clear Active Filters */}
+            {(selectedCategory !== "all" || statusFilter !== "all" || searchQuery) && (
               <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory("all");
+                  setStatusFilter("all");
+                  setSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                className="px-2.5 py-2 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 rounded-lg transition cursor-pointer flex items-center gap-1 shrink-0"
+                title="Reset all filters"
+              >
+                <X className="w-3 h-3" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
+
+            {/* View Mode Switcher */}
+            <div className="bg-[#f4f7fa] p-1 rounded-lg border border-[#e2e8f0] flex items-center shrink-0">
+              <button
+                type="button"
                 onClick={() => setViewMode("grid")}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "grid"
@@ -562,6 +491,7 @@ export default function ProductsPage({
                 <LayoutGrid className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode("table")}
                 className={`p-1.5 rounded-md transition cursor-pointer ${
                   viewMode === "table"
@@ -649,26 +579,35 @@ export default function ProductsPage({
                       {renderDivisionIcon(product.division, "w-10 h-10 text-gray-300")}
                     </div>
 
-                    {/* Status Badge Top Left */}
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                    {/* Status Toggle Switch Top Left */}
+                    <div className="absolute top-2.5 left-2.5">
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleToggleStatus(product);
                         }}
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded shadow-2xs transition flex items-center gap-1 cursor-pointer ${
-                          isInactive
-                            ? "bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200"
-                            : "bg-emerald-600 text-white hover:bg-emerald-700"
-                        }`}
-                        title="Click to toggle Active / Inactive status"
+                        className="flex items-center gap-1.5 bg-white/95 backdrop-blur-xs px-2 py-1 rounded-full border border-gray-200 shadow-2xs group cursor-pointer transition hover:border-gray-300"
+                        title={isInactive ? "Product hidden from website. Click to Show." : "Product visible on website. Click to Hide."}
                       >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isInactive ? "bg-amber-500" : "bg-white"
+                        <div
+                          className={`w-7 h-4 rounded-full p-0.5 transition-colors duration-200 flex items-center ${
+                            isInactive ? "bg-gray-300" : "bg-emerald-600"
                           }`}
-                        ></span>
-                        <span>{product.status || "Active"}</span>
+                        >
+                          <div
+                            className={`w-3 h-3 rounded-full bg-white shadow-xs transform transition-transform duration-200 ${
+                              isInactive ? "translate-x-0" : "translate-x-3"
+                            }`}
+                          />
+                        </div>
+                        <span
+                          className={`text-[10px] font-bold ${
+                            isInactive ? "text-gray-400" : "text-emerald-700"
+                          }`}
+                        >
+                          {isInactive ? "Hidden" : "Show"}
+                        </span>
                       </button>
                     </div>
 
@@ -813,12 +752,13 @@ export default function ProductsPage({
             <table className="w-full text-left text-xs">
               <thead className="bg-[#f8fafc] text-gray-600 font-semibold border-b border-[#eaedf1]">
                 <tr>
+                  <th className="py-3 px-4 w-12 text-center text-gray-400 font-mono">#</th>
                   <th className="py-3 px-4">Thumb</th>
                   <th className="py-3 px-4">Product Name</th>
                   <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Key Specs</th>
                   <th className="py-3 px-4">Description</th>
+                  <th className="py-3 px-4">Status / Visibility</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -834,6 +774,9 @@ export default function ProductsPage({
                         isInactive ? "bg-amber-50/10" : ""
                       }`}
                     >
+                      <td className="py-3 px-4 text-center font-mono font-medium text-gray-400 text-xs">
+                        {String(startIndex + pIdx + 1).padStart(2, "0")}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-lg border border-gray-200 p-1 flex items-center justify-center shrink-0">
                           <img
@@ -859,23 +802,6 @@ export default function ProductsPage({
                           {product.categoryTitle || product.categoryName}
                         </span>
                       </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleToggleStatus(product)}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${
-                            isInactive
-                              ? "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-                              : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isInactive ? "bg-amber-500" : "bg-emerald-500"
-                            }`}
-                          ></span>
-                          <span>{product.status || "Active"}</span>
-                        </button>
-                      </td>
                       <td className="py-3 px-4">
                         {specItems.length > 0 ? (
                           <div className="text-[11px] text-gray-600 space-y-0.5">
@@ -898,6 +824,40 @@ export default function ProductsPage({
                       </td>
                       <td className="py-3 px-4 text-gray-500 max-w-xs truncate">
                         {product.description}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(product)}
+                          className="flex items-center gap-2 group cursor-pointer focus:outline-none"
+                          title={
+                            isInactive
+                              ? "Product hidden from website. Click to Show on website."
+                              : "Product live on website. Click to Hide from website."
+                          }
+                        >
+                          {/* Modern Toggle Switch */}
+                          <div
+                            className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out flex items-center ${
+                              isInactive ? "bg-gray-300" : "bg-emerald-600 shadow-2xs"
+                            }`}
+                          >
+                            <div
+                              className={`w-4 h-4 rounded-full bg-white shadow-xs transform transition-transform duration-200 ease-in-out ${
+                                isInactive ? "translate-x-0" : "translate-x-4"
+                              }`}
+                            />
+                          </div>
+                          <span
+                            className={`text-xs font-semibold transition-colors ${
+                              isInactive
+                                ? "text-gray-400 group-hover:text-gray-600"
+                                : "text-emerald-700 group-hover:text-emerald-800"
+                            }`}
+                          >
+                            {isInactive ? "Hidden" : "Show"}
+                          </span>
+                        </button>
                       </td>
                       <td className="py-3 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1">
@@ -934,132 +894,18 @@ export default function ProductsPage({
       )}
 
       {/* ============================================================ */}
-      {/* 1. INSPECT PRODUCT MODAL                                      */}
+      {/* 1. INSPECT PRODUCT MODAL (1:1 Frontend Dossier Match)        */}
       {/* ============================================================ */}
       {selectedProduct && (
-        <div
-          onClick={() => setSelectedProduct(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 border border-gray-200 relative max-h-[90vh] overflow-y-auto space-y-4"
-          >
-            {/* Modal Header */}
-            <div className="flex items-start justify-between pb-3 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-[#105784]">
-                    #{selectedProduct.id}
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
-                    {selectedProduct.division}
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
-                    {selectedProduct.categoryTitle ||
-                      selectedProduct.categoryName}
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      selectedProduct.status === "Inactive"
-                        ? "bg-amber-50 text-amber-700 border-amber-300"
-                        : "bg-emerald-50 text-emerald-700 border-emerald-300"
-                    }`}
-                  >
-                    ● {selectedProduct.status || "Active"}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-[#1c232f] mt-1">
-                  {selectedProduct.name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedProduct(null)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Image Box */}
-            <div className="aspect-16/9 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] p-4 flex items-center justify-center overflow-hidden">
-              <img
-                src={selectedProduct.imageSrc}
-                alt={selectedProduct.name}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Overview & Mission Capability
-              </h4>
-              <p className="text-xs text-gray-600 leading-relaxed bg-[#f8fafc] p-3 rounded-lg border border-[#e2e8f0]">
-                {extractOverviewText(selectedProduct)}
-              </p>
-            </div>
-
-            {/* Specifications Grid */}
-            {extractSpecGrid(selectedProduct).length > 0 && (
-              <div>
-                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Gauge className="w-3.5 h-3.5 text-[#105784]" />
-                  <span>Technical Specifications</span>
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {extractSpecGrid(selectedProduct).map((spec, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="p-2.5 rounded-lg bg-white border border-[#e2e8f0] shadow-2xs"
-                    >
-                      <span className="text-[10px] text-gray-400 font-medium block truncate">
-                        {spec.label}
-                      </span>
-                      <span className="text-xs font-bold text-[#1c232f] mt-0.5 block truncate">
-                        {spec.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Modal Footer Actions */}
-            <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    handleToggleStatus(selectedProduct);
-                  }}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition cursor-pointer"
-                >
-                  Toggle to{" "}
-                  {selectedProduct.status === "Inactive"
-                    ? "Active"
-                    : "Inactive"}
-                </button>
-                <button
-                  onClick={() => {
-                    setProductToEdit(selectedProduct);
-                    setSelectedProduct(null);
-                  }}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 text-sky-700 border border-sky-300 hover:bg-sky-100 transition cursor-pointer flex items-center gap-1"
-                >
-                  <Pencil className="w-3 h-3" />
-                  <span>Edit in Side Drawer</span>
-                </button>
-              </div>
-
-              <button
-                onClick={() => setSelectedProduct(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <ProductDetailInspectModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onEdit={(prod) => {
+            setProductToEdit(prod);
+            setSelectedProduct(null);
+          }}
+          onToggleStatus={(prod) => handleToggleStatus(prod)}
+        />
       )}
 
       {/* ============================================================ */}
@@ -1068,9 +914,15 @@ export default function ProductsPage({
       {showAddDrawer && (
         <ProductFormDrawer
           mode="add"
-          divisions={divisions}
+          divisions={visibleDivisions}
           allCategories={categories}
-          defaultDivision={activeDivision}
+          defaultDivision={
+            lockedDivision ||
+            (activeDivision === "All" || activeDivision === "all"
+              ? "Aerospace"
+              : activeDivision)
+          }
+          lockedDivision={lockedDivision}
           onClose={() => setShowAddDrawer(false)}
           onSubmit={async (newProductData) => {
             try {
@@ -1091,17 +943,24 @@ export default function ProductsPage({
         <ProductFormDrawer
           mode="edit"
           initialData={productToEdit}
-          divisions={divisions}
+          divisions={visibleDivisions}
           allCategories={categories}
           defaultDivision={productToEdit.division}
+          lockedDivision={lockedDivision}
           onClose={() => setProductToEdit(null)}
           onSubmit={async (updatedData) => {
             try {
-              await updateProduct(productToEdit.id || productToEdit._id, updatedData);
-              triggerToast(`Product "${updatedData.name}" updated successfully!`);
+              await updateProduct(
+                productToEdit.id || productToEdit._id,
+                updatedData
+              );
+              triggerToast(
+                `Product "${updatedData.name}" updated successfully!`
+              );
               setProductToEdit(null);
             } catch (err) {
               triggerToast(err.message || "Failed to update product.");
+              throw err;
             }
           }}
         />
@@ -1146,7 +1005,7 @@ export default function ProductsPage({
                   {productToDelete.name}
                 </div>
                 <div className="text-[11px] text-gray-500 truncate">
-                  {productToDelete.division} •{" "}
+                  {productToDelete.division} ΓÇó{" "}
                   {productToDelete.categoryTitle || productToDelete.categoryName}
                 </div>
                 <div className="text-[10px] font-mono text-gray-400">
@@ -1236,636 +1095,3 @@ export default function ProductsPage({
 }
 
 // ======================================================================
-// REUSABLE PRODUCT SLIDE-OVER SIDEBAR DRAWER (Add / Edit + Image Upload)
-// ======================================================================
-function ProductFormDrawer({
-  mode = "add",
-  initialData = null,
-  divisions = [],
-  allCategories = [],
-  defaultDivision = "Aerospace",
-  onClose,
-  onSubmit,
-}) {
-  const [division, setDivision] = useState(
-    initialData?.division || defaultDivision
-  );
-
-  const availableCategories = useMemo(() => {
-    return allCategories.filter((c) => c.division === division);
-  }, [allCategories, division]);
-
-  const [categoryName, setCategoryName] = useState(
-    initialData?.categoryTitle ||
-      initialData?.categoryName ||
-      availableCategories[0]?.name ||
-      "Tactical Systems"
-  );
-
-  const [name, setName] = useState(initialData?.name || "");
-  const [id, setId] = useState(initialData?.id || "");
-  const [description, setDescription] = useState(
-    initialData?.description || ""
-  );
-  const [imageSrc, setImageSrc] = useState(
-    initialData?.imageSrc || PRESET_IMAGES[division]?.[0]?.value || "/images/aerospace-products/arrow.png"
-  );
-  const [imageFileName, setImageFileName] = useState("");
-  const [imageSourceMode, setImageSourceMode] = useState("upload"); // 'upload' | 'preset' | 'url'
-  const [status, setStatus] = useState(initialData?.status || "Active");
-  const [isDragging, setIsDragging] = useState(false);
-
-  const fileInputRef = useRef(null);
-
-  // Dynamic Specifications key-value pairs (blank by default as requested)
-  const initialSpecs = useMemo(() => {
-    if (initialData?.details) {
-      const grid = initialData.details.find((d) => d.type === "spec-grid");
-      if (grid?.items?.length) {
-        return grid.items.map((it) => ({ label: it.label, value: it.value }));
-      }
-    }
-    return [];
-  }, [initialData]);
-
-  const [specs, setSpecs] = useState(initialSpecs);
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const handleDivisionToggle = (newDiv) => {
-    setDivision(newDiv);
-    const newCats = allCategories.filter((c) => c.division === newDiv);
-    if (newCats.length > 0) {
-      setCategoryName(newCats[0]?.name || `${newDiv} Equipment`);
-    } else {
-      setCategoryName(`${newDiv} Systems`);
-    }
-    if (mode === "add" && imageSourceMode === "preset") {
-      setImageSrc(PRESET_IMAGES[newDiv]?.[0]?.value || "/images/aerospace-products/arrow.png");
-    }
-  };
-
-  // Image File Upload Handlers
-  const processImageFile = (file) => {
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setErrorMsg("Please select a valid image file (PNG, JPG, WEBP, SVG).");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg("Image size exceeds 10MB limit. Please upload a smaller image.");
-      return;
-    }
-    setErrorMsg("");
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImageSrc(e.target.result); // Base64 data URL
-      setImageFileName(file.name);
-    };
-    reader.onerror = () => {
-      setErrorMsg("Failed to read image file. Please try again.");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleFileInputChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processImageFile(file);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      processImageFile(file);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageSrc("");
-    setImageFileName("");
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Specifications Handlers
-  const handleAddSpecRow = () => {
-    setSpecs([...specs, { label: "", value: "" }]);
-  };
-
-  const handleSpecChange = (index, field, value) => {
-    const updated = [...specs];
-    updated[index][field] = value;
-    setSpecs(updated);
-  };
-
-  const handleRemoveSpec = (index) => {
-    setSpecs(specs.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setErrorMsg("Product name is required.");
-      return;
-    }
-
-    const cleanCatName = categoryName.trim() || `${division} Systems`;
-    const cleanCatId = cleanCatName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
-    const validSpecs = specs.filter(
-      (s) => s.label.trim() !== "" && s.value.trim() !== ""
-    );
-
-    const productPayload = {
-      id: id.trim() || undefined,
-      name: name.trim(),
-      description: description.trim() || `${name} engineered for tactical defence readiness.`,
-      imageSrc:
-        imageSrc.trim() ||
-        (division === "Aerospace"
-          ? "/images/aerospace-products/arrow.png"
-          : "/images/2. Defence Page/Abhedya-Level-III-Helmet.png"),
-      imageAlt: name.trim(),
-      division,
-      categoryId: cleanCatId,
-      categoryTitle: cleanCatName,
-      categoryName: cleanCatName,
-      status,
-      details: [
-        {
-          type: "spec-grid",
-          items: validSpecs,
-        },
-        {
-          type: "text",
-          title: "Overview",
-          body: description.trim() || `${name} tactical specification profile.`,
-        },
-      ],
-    };
-
-    onSubmit(productPayload);
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Semi-transparent Backdrop */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-fadeIn cursor-pointer"
-      />
-
-      {/* Slide-Over Right Sidebar Container */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10 pointer-events-none">
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="w-screen max-w-xl sm:max-w-2xl bg-white shadow-2xl flex flex-col border-l border-gray-200 animate-slideInRight pointer-events-auto"
-        >
-          {/* Drawer Top Header */}
-          <div className="px-6 py-4 border-b border-gray-200 bg-[#fbfcfd] flex items-center justify-between shrink-0">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider bg-[#105784] text-white">
-                  {division}
-                </span>
-                <h3 className="text-base font-bold text-[#1c232f]">
-                  {mode === "add" ? "Add New Product" : `Edit Product: ${initialData?.name}`}
-                </h3>
-              </div>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Configure equipment details, upload product imagery, and set specifications.
-              </p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition cursor-pointer"
-              title="Close Drawer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Error Banner */}
-          {errorMsg && (
-            <div className="mx-6 mt-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-2.5 rounded-lg flex items-center gap-2 shrink-0">
-              <XCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Drawer Scrollable Form Body */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto px-6 py-5 space-y-5 text-xs"
-          >
-            {/* 1. Dynamic Division Selector */}
-            <div>
-              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                Target Division *
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {divisions.map((d, dIdx) => (
-                  <button
-                    key={d.id || d._id || d.slug || d.name || `d-${dIdx}`}
-                    type="button"
-                    onClick={() => handleDivisionToggle(d.name)}
-                    className={`p-2.5 rounded-xl border font-bold flex items-center justify-center gap-1.5 transition cursor-pointer text-xs ${
-                      division === d.name
-                        ? "bg-[#105784] text-white border-[#105784] shadow-2xs"
-                        : "bg-[#f8fafc] text-gray-700 border-gray-200 hover:bg-gray-100"
-                    }`}
-                  >
-                    {renderDivisionIcon(d.name, "w-3.5 h-3.5")}
-                    <span className="truncate">{d.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Product Name & ID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  placeholder="e.g. Garuda UAV / Vajra Armor"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Product ID / SKU Slug
-                </label>
-                <input
-                  type="text"
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
-                  placeholder="Auto-generated if empty"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white font-mono text-xs transition"
-                />
-              </div>
-            </div>
-
-            {/* 3. Category & Status */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Category / Sub-Line *
-                </label>
-                <input
-                  type="text"
-                  list="drawer-category-suggestions"
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="e.g. UAV Systems / Ballistic Protection"
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-                />
-                <datalist id="drawer-category-suggestions">
-                  {availableCategories.map((cat) => (
-                    <option key={cat.id} value={cat.name} />
-                  ))}
-                </datalist>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                  Operational Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-                >
-                  <option value="Active">Active (Operational & Live)</option>
-                  <option value="Inactive">Inactive (Disabled / Archived)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* 4. REAL IMAGE UPLOAD SYSTEM */}
-            <div className="space-y-2 pt-2 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-[#105784]" />
-                  <span>Product Image / Photo *</span>
-                </label>
-                {/* Image Mode Switcher */}
-                <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg text-[10px]">
-                  <button
-                    type="button"
-                    onClick={() => setImageSourceMode("upload")}
-                    className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                      imageSourceMode === "upload"
-                        ? "bg-white text-gray-900 shadow-2xs"
-                        : "text-gray-500 hover:text-gray-900"
-                    }`}
-                  >
-                    Upload File
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageSourceMode("preset")}
-                    className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                      imageSourceMode === "preset"
-                        ? "bg-white text-gray-900 shadow-2xs"
-                        : "text-gray-500 hover:text-gray-900"
-                    }`}
-                  >
-                    Website Presets
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageSourceMode("url")}
-                    className={`px-2 py-0.5 rounded font-semibold transition cursor-pointer ${
-                      imageSourceMode === "url"
-                        ? "bg-white text-gray-900 shadow-2xs"
-                        : "text-gray-500 hover:text-gray-900"
-                    }`}
-                  >
-                    Direct URL
-                  </button>
-                </div>
-              </div>
-
-              {/* Mode A: Real File Upload Dropzone */}
-              {imageSourceMode === "upload" && (
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png, image/jpeg, image/jpg, image/webp, image/svg+xml"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
-
-                  {imageSrc && !imageSrc.startsWith("/images") ? (
-                    /* Uploaded Image Preview */
-                    <div className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-16 h-16 bg-white rounded-lg border border-emerald-300 p-1 flex items-center justify-center shrink-0 shadow-2xs">
-                          <img
-                            src={imageSrc}
-                            alt="Uploaded Preview"
-                            className="max-h-full max-w-full object-contain"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Image Uploaded
-                          </span>
-                          <p className="text-xs font-semibold text-gray-800 truncate mt-1">
-                            {imageFileName || "Custom Uploaded Image"}
-                          </p>
-                          <p className="text-[10px] text-gray-400">
-                            Ready to save with product
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="px-2.5 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg transition cursor-pointer"
-                        >
-                          Replace
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleRemoveImage}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                          title="Remove Image"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Drag & Drop Upload Dropzone */
-                    <div
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center group ${
-                        isDragging
-                          ? "border-[#105784] bg-sky-50/50 scale-[0.99]"
-                          : "border-gray-300 bg-[#f8fafc] hover:border-[#105784] hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="w-12 h-12 rounded-full bg-white shadow-2xs border border-gray-200 flex items-center justify-center text-[#105784] group-hover:scale-110 transition-transform mb-2">
-                        <UploadCloud className="w-6 h-6" />
-                      </div>
-                      <p className="text-xs font-bold text-gray-800">
-                        Click to upload image, or drag & drop here
-                      </p>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        Supports PNG, JPG, WEBP, SVG (up to 10MB)
-                      </p>
-                      <button
-                        type="button"
-                        className="mt-3 px-3 py-1 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 shadow-2xs group-hover:bg-[#105784] group-hover:text-white group-hover:border-[#105784] transition"
-                      >
-                        Browse Image File
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Mode B: Presets Picker */}
-              {imageSourceMode === "preset" && (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-gray-50 rounded-xl border border-gray-200">
-                    {(PRESET_IMAGES[division] || PRESET_IMAGES.Aerospace)?.map((preset, pIdx) => {
-                      const isSelected = imageSrc === preset.value;
-                      return (
-                        <button
-                          key={pIdx}
-                          type="button"
-                          onClick={() => {
-                            setImageSrc(preset.value);
-                            setImageFileName(preset.label);
-                          }}
-                          className={`p-2 rounded-lg border text-left transition flex flex-col items-center gap-1.5 cursor-pointer ${
-                            isSelected
-                              ? "bg-white border-[#105784] ring-2 ring-[#105784]/20 shadow-2xs"
-                              : "bg-white border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <div className="w-12 h-12 flex items-center justify-center p-1">
-                            <img
-                              src={preset.value}
-                              alt={preset.label}
-                              className="max-h-full max-w-full object-contain"
-                            />
-                          </div>
-                          <span className="text-[10px] font-semibold text-gray-700 text-center truncate w-full">
-                            {preset.label}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Mode C: Direct URL Input */}
-              {imageSourceMode === "url" && (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={imageSrc}
-                    onChange={(e) => setImageSrc(e.target.value)}
-                    placeholder="https://... or /images/..."
-                    className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-                  />
-                  {imageSrc && (
-                    <div className="p-2 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-3">
-                      <div className="w-12 h-12 bg-white rounded border border-gray-200 p-1 flex items-center justify-center shrink-0">
-                        <img
-                          src={imageSrc}
-                          alt="Preview"
-                          className="max-h-full max-w-full object-contain"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                          }}
-                        />
-                      </div>
-                      <span className="text-[11px] text-gray-500 font-mono truncate">
-                        {imageSrc}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 5. Description / Overview */}
-            <div>
-              <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">
-                Description & Mission Role
-              </label>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tactical overview, mission capability, and field deployment parameters..."
-                className="w-full px-3 py-2 bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:border-[#105784] focus:bg-white text-xs transition"
-              />
-            </div>
-
-            {/* 6. Dynamic Technical Specifications (blank by default) */}
-            <div className="space-y-2 pt-2 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">
-                    Technical Specifications
-                  </label>
-                  <p className="text-[10px] text-gray-400">
-                    Add custom parameter key-value pairs (e.g. Weight, Range, Speed)
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAddSpecRow}
-                  className="px-2.5 py-1 text-xs font-bold text-[#105784] bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Add Spec</span>
-                </button>
-              </div>
-
-              {specs.length === 0 ? (
-                <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center text-gray-400 text-xs">
-                  No technical specifications added yet. Click &quot;+ Add Spec&quot; to add custom parameters.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {specs.map((spec, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={spec.label}
-                        onChange={(e) =>
-                          handleSpecChange(index, "label", e.target.value)
-                        }
-                        placeholder="Spec Name (e.g. Weight)"
-                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
-                      />
-                      <input
-                        type="text"
-                        value={spec.value}
-                        onChange={(e) =>
-                          handleSpecChange(index, "value", e.target.value)
-                        }
-                        placeholder="Value (e.g. 15 kg)"
-                        className="flex-1 px-3 py-1.5 bg-[#f8fafc] border border-gray-200 rounded-md focus:outline-none focus:bg-white text-xs"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSpec(index)}
-                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded transition cursor-pointer"
-                        title="Remove spec"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Form Action Buttons */}
-            <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-2.5 sticky bottom-0 bg-white py-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-xl transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs font-bold text-white bg-[#105784] hover:bg-[#0c476c] rounded-xl shadow-2xs transition cursor-pointer flex items-center gap-1.5"
-              >
-                {mode === "add" ? (
-                  <>
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Create Product</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Save Changes</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-}

@@ -58,6 +58,14 @@ export default function AdminLayout({
     };
   }, []);
 
+  const aerospaceCount = products.filter(
+    (p) => (p.division || "").toLowerCase() === "aerospace"
+  ).length;
+
+  const defenceCount = products.filter(
+    (p) => (p.division || "").toLowerCase() === "defence"
+  ).length;
+
   const navGroups = [
     {
       group: "CORE OPERATIONS",
@@ -87,18 +95,25 @@ export default function AdminLayout({
         ]
       : []),
     {
-      group: "PRODUCTS",
+      group: "PRODUCT CATALOGS",
       items: [
         {
-          id: "products",
-          label: "Products",
-          icon: Package,
-          badge: products.length > 0 ? products.length : null,
-          badgeColor: "bg-[#105784]",
+          id: "products-aerospace",
+          label: "Aerospace Products",
+          icon: Plane,
+          badge: aerospaceCount > 0 ? aerospaceCount : null,
+          badgeColor: "bg-sky-600",
+        },
+        {
+          id: "products-defence",
+          label: "Defence Products",
+          icon: Shield,
+          badge: defenceCount > 0 ? defenceCount : null,
+          badgeColor: "bg-emerald-600",
         },
         {
           id: "masters",
-          label: "Masters",
+          label: "Masters (Categories)",
           icon: Database,
           badge: null,
           badgeColor: "bg-indigo-600",
@@ -201,7 +216,11 @@ export default function AdminLayout({
                 const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
                 const isItemActive =
                   currentTab === item.id ||
-                  (item.id === "products" && currentTab.startsWith("products")) ||
+                  (item.id === "products-aerospace" &&
+                    (currentTab === "products" ||
+                      currentTab === "products-aerospace")) ||
+                  (item.id === "products-defence" &&
+                    currentTab === "products-defence") ||
                   (item.id === "contact-leads" && currentTab === "leads");
                 const isChildActive =
                   hasSubItems &&
