@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import gsap from "gsap";
@@ -22,16 +22,16 @@ interface BusinessItem {
   href: string;
 }
 
-const businesses: BusinessItem[] = [
+const DEFAULT_BUSINESSES: BusinessItem[] = [
   {
     id: "aerospace",
     sector: "Sector 1",
     title: "AEROSPACE",
-    description: "UAV platforms and aerial surveillance systems.",
+    description: "Aeronautical systems, tactical UAVs, ISR reconnaissance, and flight avionics.",
     buttonText: "Explore Aerospace",
-    imageSrc: "/images/business-aerospace.jpg",
-    imageAlt: "Stealth aerospace defence aircraft in high-tech hangar",
-    logoSrc: "/images/aerospace.png",
+    imageSrc: "",
+    imageAlt: "Aerospace platform",
+    logoSrc: "",
     logoAlt: "Aerospace Logo",
     href: "/products/aerospace",
   },
@@ -39,43 +39,18 @@ const businesses: BusinessItem[] = [
     id: "defence",
     sector: "Sector 2",
     title: "DEFENCE",
-    description: "Precision weapon platforms and sovereign tactical equipment.",
+    description: "Frontline ballistic protection, tactical helmets, combat body armor, and riot gear.",
     buttonText: "Explore Defence",
-    imageSrc: "/images/business-systems.jpg",
-    imageAlt: "Specialist engineer operating tactical command workstation in red lighting",
-    logoSrc: "/images/defence.png",
+    imageSrc: "",
+    imageAlt: "Defence equipment",
+    logoSrc: "",
     logoAlt: "Defence Logo",
     href: "/products/defence",
   },
-  /*
-  {
-    id: "advanced-systems",
-    sector: "Sector 3",
-    title: "ADVANCED SYSTEMS",
-    description: "Autonomous command architectures and tactical electronic systems.",
-    buttonText: "Explore Systems",
-    imageSrc: "/images/business-tactical.jpg",
-    imageAlt: "Tactical telemetry and orbital defence mission interface tablet",
-    logoSrc: "/images/advanced-systems.png",
-    logoAlt: "Advanced Systems Logo",
-    href: "/capabilities",
-  },
-  {
-    id: "petrochemical",
-    sector: "Sector 4",
-    title: "PETROCHEMICAL",
-    description: "Process engineering and critical energy infrastructure solutions.",
-    buttonText: "Explore Petrochem",
-    imageSrc: "/images/business-energy.jpg",
-    imageAlt: "Modern petrochemical facility and advanced energy infrastructure at dusk",
-    logoSrc: "/images/petrochem.png",
-    logoAlt: "Petrochemical Logo",
-    href: "/capabilities",
-  },
-  */
 ];
 
 export default function BusinessesSection() {
+  const [items, setItems] = useState<BusinessItem[]>(DEFAULT_BUSINESSES);
   const sectionRef = useRef<HTMLElement>(null);
   const pinWrapRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +58,51 @@ export default function BusinessesSection() {
   const cardsGridRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    const loadDivisions = () => {
+      fetch(`${apiUrl}/divisions`, { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && Array.isArray(data.divisions)) {
+            const activeDivs = data.divisions.filter(
+              (d: any) => (d.status || "Active") === "Active"
+            );
+            if (activeDivs.length > 0) {
+              const mapped: BusinessItem[] = activeDivs.map((d: any, idx: number) => {
+                const slug = d.slug || d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                return {
+                  id: slug,
+                  sector: d.sector || `Sector ${idx + 1}`,
+                  title: d.name.toUpperCase(),
+                  description:
+                    d.description ||
+                    `${d.name} advanced engineering platforms and systems.`,
+                  buttonText: d.buttonText || `Explore ${d.name}`,
+                  imageSrc: d.imageSrc || "",
+                  imageAlt: d.imageAlt || `${d.name} industrial equipment`,
+                  logoSrc: d.logoSrc || "",
+                  logoAlt: d.logoAlt || `${d.name} Logo`,
+                  href: d.href || `/products/${slug}`,
+                };
+              });
+              setItems(mapped);
+            } else {
+              setItems([]);
+            }
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to load live divisions for business section:", err);
+        });
+    };
+
+    loadDivisions();
+    window.addEventListener("focus", loadDivisions);
+    return () => window.removeEventListener("focus", loadDivisions);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -246,7 +266,7 @@ export default function BusinessesSection() {
       metaSplit?.revert();
       ctx.revert();
     };
-  }, []);
+  }, [items]);
 
   return (
     <section
@@ -290,7 +310,7 @@ export default function BusinessesSection() {
 
           {/* Cards Grid (4 Cards that slide smoothly up underneath the divider line) */}
           <div ref={cardsGridRef} className={styles.grid}>
-            {businesses.map((item, index) => (
+            {items.map((item, index) => (
               <article
                 key={item.id}
                 ref={(el) => {
@@ -301,30 +321,61 @@ export default function BusinessesSection() {
                 <Link href={item.href} aria-label={item.title}>
                   {/* Media with Hover Zoom & Floating Center Logo Card */}
                   <div className={styles.mediaWrap}>
-                    <Image
-                      ref={(el) => {
-                        imageRefs.current[index] = el;
-                      }}
-                      src={item.imageSrc}
-                      alt={item.imageAlt}
-                      fill
-                      sizes="(max-width: 680px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      className={styles.cardImage}
-                      priority={index === 0}
-                    />
+                    {item.imageSrc ? (
+                      <Image
+                        ref={(el) => {
+                          imageRefs.current[index] = el;
+                        }}
+                        src={item.imageSrc}
+                        alt={item.imageAlt || item.title}
+                        fill
+                        sizes="(max-width: 680px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className={styles.cardImage}
+                        priority={index === 0}
+                        unoptimized={item.imageSrc.startsWith("data:")}
+                      />
+                    ) : (
+                      <div className={styles.emptyPlaceholder}>
+                        <div className={styles.placeholderPattern} />
+                        <div className={styles.placeholderContent}>
+                          <div className={styles.placeholderIconBox}>
+                            <svg
+                              width="28"
+                              height="28"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className={styles.placeholderIcon}
+                            >
+                              <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                              <circle cx="9" cy="9" r="2" />
+                              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                            </svg>
+                          </div>
+                          <span className={styles.placeholderLabel}>{item.sector}</span>
+                          <span className={styles.placeholderHint}>No image uploaded</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Floating Center Card with Zoom-in Logo Animation */}
-                    <div className={styles.centerCard} aria-hidden="true">
-                      <div className={styles.logoImageWrap}>
-                        <Image
-                          src={item.logoSrc}
-                          alt={item.logoAlt}
-                          fill
-                          sizes="180px"
-                          className={styles.logoImage}
-                        />
+                    {item.logoSrc && (
+                      <div className={styles.centerCard} aria-hidden="true">
+                        <div className={styles.logoImageWrap}>
+                          <Image
+                            src={item.logoSrc}
+                            alt={item.logoAlt || `${item.title} Logo`}
+                            fill
+                            sizes="180px"
+                            className={styles.logoImage}
+                            unoptimized={item.logoSrc.startsWith("data:")}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Card Info Below Media */}

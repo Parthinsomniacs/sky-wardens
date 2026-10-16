@@ -31,6 +31,14 @@ const normalizeDivision = (d) => ({
   color: d.color || "#105784",
   badgeColor: d.badgeColor || "bg-indigo-600",
   status: d.status || "Active",
+  sector: d.sector || "",
+  buttonText: d.buttonText || "",
+  imageSrc: d.imageSrc || "",
+  imageAlt: d.imageAlt || "",
+  logoSrc: d.logoSrc || "",
+  logoAlt: d.logoAlt || "",
+  href: d.href || (d.slug ? `/products/${d.slug}` : ""),
+  order: typeof d.order === "number" ? d.order : 0,
   createdAt: d.createdAt,
 });
 
@@ -47,10 +55,6 @@ export function ProductsProvider({ children }) {
       const [fetchedDivisions, fetchedProducts] = await Promise.all([
         divisionsApi.getAll().catch((err) => {
           console.warn("Divisions API load error:", err.message);
-          return [];
-        }),
-        categoriesApi.getAll().catch((err) => {
-          console.warn("Categories API load error:", err.message);
           return [];
         }),
         productsApi
@@ -120,6 +124,14 @@ export function ProductsProvider({ children }) {
         description: newDiv.description?.trim() || "",
         status: newDiv.status || "Active",
         badgeColor: newDiv.badgeColor || "bg-indigo-600",
+        sector: newDiv.sector?.trim() || "",
+        buttonText: newDiv.buttonText?.trim() || "",
+        imageSrc: newDiv.imageSrc?.trim() || "",
+        imageAlt: newDiv.imageAlt?.trim() || "",
+        logoSrc: newDiv.logoSrc?.trim() || "",
+        logoAlt: newDiv.logoAlt?.trim() || "",
+        href: newDiv.href?.trim() || "",
+        order: typeof newDiv.order === "number" ? newDiv.order : 0,
       });
       const normalized = normalizeDivision(created);
       setDivisions((prev) => {
@@ -131,9 +143,7 @@ export function ProductsProvider({ children }) {
       return normalized;
     } catch (err) {
       console.error("Failed to add division in backend:", err);
-      const local = normalizeDivision(newDiv);
-      setDivisions((prev) => [...prev, local]);
-      return local;
+      throw err;
     }
   };
 
@@ -184,27 +194,7 @@ export function ProductsProvider({ children }) {
       return normalized;
     } catch (err) {
       console.error("Failed to update division in backend:", err);
-      setDivisions((prev) =>
-        prev.map((d) =>
-          d.id === id || d._id === id || d.name === id ? { ...d, ...updatedFields } : d
-        )
-      );
-
-      if (updatedFields.status) {
-        const targetDiv = divisions.find(
-          (d) => d.id === id || d._id === id || d.name === id
-        );
-        const divName = targetDiv?.name || updatedFields.name;
-        if (divName) {
-          setProducts((prev) =>
-            prev.map((p) =>
-              p.division?.toLowerCase() === divName.toLowerCase()
-                ? { ...p, status: updatedFields.status }
-                : p
-            )
-          );
-        }
-      }
+      throw err;
     }
   };
 
@@ -214,11 +204,10 @@ export function ProductsProvider({ children }) {
       setDivisions((prev) =>
         prev.filter((d) => d.id !== id && d._id !== id && d.name !== id)
       );
+      return true;
     } catch (err) {
       console.error("Failed to delete division in backend:", err);
-      setDivisions((prev) =>
-        prev.filter((d) => d.id !== id && d._id !== id && d.name !== id)
-      );
+      throw err;
     }
   };
 

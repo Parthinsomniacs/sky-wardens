@@ -694,22 +694,32 @@ export default function ProductFormDrawer({
                         <label className="text-xs font-bold text-gray-700 block mb-1">
                           {division} Category <span className="text-rose-500">*</span>
                         </label>
-                        <select
-                          value={categoryName}
-                          onChange={(e) => setCategoryName(e.target.value)}
-                          className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:border-[#105784] bg-white font-medium ${
-                            !categoryName
-                              ? "text-gray-400 border-gray-300"
-                              : "text-gray-800 border-gray-300"
-                          }`}
-                        >
-                          <option value="">-- Select Category --</option>
-                          {availableCategories.map((c, idx) => (
-                            <option key={c.id || idx} value={c.name} className="text-gray-800">
-                              {c.number ? `${c.number}. ` : ""}{c.name}
-                            </option>
-                          ))}
-                        </select>
+                        {availableCategories.length > 0 ? (
+                          <select
+                            value={categoryName}
+                            onChange={(e) => setCategoryName(e.target.value)}
+                            className={`w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:border-[#105784] bg-white font-medium ${
+                              !categoryName
+                                ? "text-gray-400 border-gray-300"
+                                : "text-gray-800 border-gray-300"
+                            }`}
+                          >
+                            <option value="">-- Select Category --</option>
+                            {availableCategories.map((c, idx) => (
+                              <option key={c.id || idx} value={c.name} className="text-gray-800">
+                                {c.number ? `${c.number}. ` : ""}{c.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={categoryName}
+                            onChange={(e) => setCategoryName(e.target.value)}
+                            placeholder={`Enter ${division} category (e.g. Specialty Systems)...`}
+                            className="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#105784] bg-white font-medium text-gray-800"
+                          />
+                        )}
                         {categoryName && (
                           <div className="mt-2.5 p-2.5 bg-gradient-to-br from-sky-50 via-blue-50/40 to-slate-50 border border-sky-200/90 rounded-xl shadow-2xs space-y-2">
                             <div className="flex items-start justify-between gap-2">

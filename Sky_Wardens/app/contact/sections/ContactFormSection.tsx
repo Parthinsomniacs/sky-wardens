@@ -26,6 +26,7 @@ export default function ContactFormSection() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [productNames, setProductNames] = useState<string[]>([]);
+  const [isProductLocked, setIsProductLocked] = useState(false);
   const [message, setMessage] = useState("");
   const [agreed, setAgreed] = useState(false);
 
@@ -287,6 +288,72 @@ export default function ContactFormSection() {
     };
   }, [isProductPickerOpen, productNames]);
 
+  // Pre-fill inquiry type & products of interest from URL parameters (e.g. from product pages)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const inquiryTypeParam =
+        searchParams.get("inquiryType") ||
+        searchParams.get("inquiry") ||
+        searchParams.get("type");
+      const productsParam =
+        searchParams.get("product") ||
+        searchParams.get("products") ||
+        searchParams.get("item");
+
+      // 1. Pre-fill Inquiry Type
+      if (inquiryTypeParam) {
+        const decoded = decodeURIComponent(inquiryTypeParam).trim();
+        const matched = INQUIRY_TYPES.find(
+          (t) => t.toLowerCase() === decoded.toLowerCase()
+        );
+        if (matched) {
+          setInquiryType(matched);
+        } else {
+          setInquiryType("Product(s) Inquiry");
+        }
+      } else if (productsParam) {
+        setInquiryType("Product(s) Inquiry");
+      }
+
+      // 2. Pre-fill & Lock Products of Interest from Slug or Name
+      if (productsParam) {
+        const decoded = decodeURIComponent(productsParam).trim();
+        const items = decoded
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        if (items.length > 0) {
+          const matchedProducts = items.map((item) => {
+            const normalized = item.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            for (const group of productGroups) {
+              const found = group.products.find(
+                (p) =>
+                  p.id.toLowerCase() === item.toLowerCase() ||
+                  p.id.toLowerCase() === normalized ||
+                  p.name.toLowerCase() === item.toLowerCase() ||
+                  p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === normalized
+              );
+              if (found) return found.name;
+            }
+            return item
+              .split("-")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" ");
+          });
+
+          setProductNames(Array.from(new Set(matchedProducts)));
+          setIsProductLocked(true);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to parse inquiry URL parameters:", err);
+    }
+  }, [productGroups]);
+
   const toggleProduct = (name: string) => {
     const next = productNames.includes(name)
       ? productNames.filter((p) => p !== name)
@@ -323,7 +390,10 @@ export default function ContactFormSection() {
   };
 
   const handleReset = () => {
-    setInquiryType("");
+    if (!isProductLocked) {
+      setInquiryType("");
+      setProductNames([]);
+    }
     setFirstName("");
     setLastName("");
     setEmail("");
@@ -336,7 +406,6 @@ export default function ContactFormSection() {
     setCountry("");
     setState("");
     setCity("");
-    setProductNames([]);
     setMessage("");
     setAgreed(false);
     setIsSubmitted(false);
@@ -521,6 +590,7 @@ export default function ContactFormSection() {
                   <div className={styles.selectWrapper}>
                     <select
                       value={inquiryType}
+                      disabled={isProductLocked}
                       onBlur={() => handleBlur("inquiryType", inquiryType)}
                       onChange={handleInquiryTypeChange}
                       className={`${styles.select} ${
@@ -528,6 +598,14 @@ export default function ContactFormSection() {
                           ? styles.inputError
                           : ""
                       }`}
+                      style={
+                        isProductLocked
+                          ? {
+                              cursor: "not-allowed",
+                              opacity: 0.85,
+                            }
+                          : undefined
+                      }
                       aria-label="Choose an inquiry"
                     >
                       <option value="" disabled>
@@ -570,14 +648,24 @@ export default function ContactFormSection() {
                     <div className={styles.productPicker}>
                       <button
                         type="button"
-                        onClick={() =>
-                          setIsProductPickerOpen((prev) => !prev)
-                        }
+                        disabled={isProductLocked}
+                        onClick={() => {
+                          if (isProductLocked) return;
+                          setIsProductPickerOpen((prev) => !prev);
+                        }}
                         className={`${styles.productTrigger} ${
                           touched.productNames && errors.productNames
                             ? styles.inputError
                             : ""
                         }`}
+                        style={
+                          isProductLocked
+                            ? {
+                                cursor: "not-allowed",
+                                opacity: 0.85,
+                              }
+                            : undefined
+                        }
                         aria-haspopup="listbox"
                         aria-expanded={isProductPickerOpen}
                       >
@@ -608,6 +696,7 @@ export default function ContactFormSection() {
                               ? "rotate(180deg)"
                               : "none",
                             transition: "transform 0.2s ease",
+                            opacity: isProductLocked ? 0.4 : 1,
                           }}
                         >
                           <polyline points="6 9 12 15 18 9" />
@@ -620,14 +709,16 @@ export default function ContactFormSection() {
                           {productNames.map((name) => (
                             <span key={name} className={styles.productTag}>
                               {name}
-                              <button
-                                type="button"
-                                onClick={() => toggleProduct(name)}
-                                className={styles.productTagRemove}
-                                aria-label={`Remove ${name}`}
-                              >
-                                ✕
-                              </button>
+                              {!isProductLocked && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleProduct(name)}
+                                  className={styles.productTagRemove}
+                                  aria-label={`Remove ${name}`}
+                                >
+                                  ✕
+                                </button>
+                              )}
                             </span>
                           ))}
                         </div>

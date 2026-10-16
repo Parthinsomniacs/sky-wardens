@@ -20,8 +20,16 @@ const createDivisionSchema = z
       .max(50, "Badge color format must not exceed 50 characters.")
       .optional()
       .default("bg-indigo-600"),
+    sector: z.string().trim().max(100).optional().default(""),
+    buttonText: z.string().trim().max(100).optional().default(""),
+    imageSrc: z.string().optional().default(""),
+    imageAlt: z.string().trim().max(500).optional().default(""),
+    logoSrc: z.string().optional().default(""),
+    logoAlt: z.string().trim().max(500).optional().default(""),
+    href: z.string().trim().max(500).optional().default(""),
+    order: z.number().optional().default(0),
   })
-  .strict(); // Block unknown/injected properties
+  .passthrough();
 
 const updateDivisionSchema = z
   .object({
@@ -42,8 +50,16 @@ const updateDivisionSchema = z
       .trim()
       .max(50, "Badge color format must not exceed 50 characters.")
       .optional(),
+    sector: z.string().trim().max(100).optional(),
+    buttonText: z.string().trim().max(100).optional(),
+    imageSrc: z.string().optional(),
+    imageAlt: z.string().trim().max(500).optional(),
+    logoSrc: z.string().optional(),
+    logoAlt: z.string().trim().max(500).optional(),
+    href: z.string().trim().max(500).optional(),
+    order: z.number().optional(),
   })
-  .strict();
+  .passthrough();
 
 module.exports = {
   createDivisionSchema,

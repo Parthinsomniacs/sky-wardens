@@ -112,7 +112,7 @@ export default function AerospaceCatalogSection() {
           });
         }
 
-        // 3. Filter ONLY categories that have active products added from admin
+        // 3. Filter categories with products, or show all valid categories if none have products yet
         const populatedCategories = dynamicCategories
           .filter((cat) => cat.products && cat.products.length > 0)
           .map((cat, idx) => ({
@@ -120,11 +120,23 @@ export default function AerospaceCatalogSection() {
             number: String(idx + 1).padStart(2, "0"),
           }));
 
-        setCategoriesList(populatedCategories);
-        setActiveId((prev) => {
-          if (populatedCategories.some((c) => c.id === prev)) return prev;
-          return populatedCategories[0]?.id || "";
-        });
+        if (populatedCategories.length > 0) {
+          setCategoriesList(populatedCategories);
+          setActiveId((prev) => {
+            if (populatedCategories.some((c) => c.id === prev)) return prev;
+            return populatedCategories[0]?.id || "";
+          });
+        } else {
+          const fallbackCats = dynamicCategories.map((cat, idx) => ({
+            ...cat,
+            number: String(idx + 1).padStart(2, "0"),
+          }));
+          setCategoriesList(fallbackCats);
+          setActiveId((prev) => {
+            if (fallbackCats.some((c) => c.id === prev)) return prev;
+            return fallbackCats[0]?.id || "";
+          });
+        }
       } catch (err) {
         console.error("Error fetching live aerospace catalog:", err);
       }
@@ -208,8 +220,8 @@ export default function AerospaceCatalogSection() {
                     );
                   })
                 ) : (
-                  <li className="px-4 py-3 text-xs text-gray-500 italic">
-                    Catalog Updating...
+                  <li className="px-4 py-3 text-xs text-gray-400 italic">
+                    No products currently available
                   </li>
                 )}
               </ul>
@@ -251,6 +263,7 @@ export default function AerospaceCatalogSection() {
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1500px) 50vw, 33vw"
                           className={styles.productImage}
+                          unoptimized={Boolean(product.imageSrc?.startsWith("data:"))}
                         />
                       </div>
 
@@ -274,10 +287,10 @@ export default function AerospaceCatalogSection() {
                 /* Fallback / empty state for unpopulated categories */
                 <div className={styles.emptyStateCard}>
                   <h3 className={styles.emptyStateTitle}>
-                    Platform Dossiers Under Classification
+                    No products currently available
                   </h3>
                   <p className={styles.emptyStateDesc}>
-                    Specifications and technical documentation for this division are available upon strategic institutional inquiry.
+                    Platform specifications and technical documentation will be published shortly, or you may inquire directly.
                   </p>
                   <Link href="/contact" className={styles.viewDetailsButton}>
                     Inquire With Aerospace Division
@@ -288,10 +301,10 @@ export default function AerospaceCatalogSection() {
           ) : (
             <div className={styles.emptyStateCard}>
               <h3 className={styles.emptyStateTitle}>
-                Platform Dossiers Under Classification
+                No products currently available
               </h3>
               <p className={styles.emptyStateDesc}>
-                Specifications and technical documentation for this division are available upon strategic institutional inquiry.
+                Platform specifications and technical documentation will be published shortly, or you may inquire directly.
               </p>
               <Link href="/contact" className={styles.viewDetailsButton}>
                 Inquire With Aerospace Division

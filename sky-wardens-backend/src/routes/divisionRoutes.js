@@ -6,7 +6,7 @@ const {
   updateDivision,
   deleteDivision,
 } = require("../controllers/divisionController");
-const { protect, authorize, superAdminOnly } = require("../middleware/authMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const validate = require("../middleware/validateMiddleware");
 const {
   createDivisionSchema,
@@ -20,7 +20,6 @@ router.get("/", getDivisions);
 router.post(
   "/",
   protect,
-  authorize("Super Admin", "Admin"),
   validate(createDivisionSchema),
   createDivision
 );
@@ -28,11 +27,10 @@ router.post(
 router.put(
   "/:id",
   protect,
-  authorize("Super Admin", "Admin"),
   validate(updateDivisionSchema),
   updateDivision
 );
 
-router.delete("/:id", protect, superAdminOnly, deleteDivision);
+router.delete("/:id", protect, deleteDivision);
 
 module.exports = router;

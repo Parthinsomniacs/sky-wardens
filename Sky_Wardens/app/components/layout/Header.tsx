@@ -59,7 +59,50 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [navLinks, setNavLinks] = useState(pageLinks);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    const loadNavLinks = () => {
+      fetch(`${apiUrl}/divisions`, { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && Array.isArray(data.divisions)) {
+            const activeDivs = data.divisions.filter(
+              (d: any) => (d.status || "Active") === "Active"
+            );
+            const productChildren = activeDivs.map((d: any) => {
+              const slug = d.slug || d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              return {
+                label: d.name,
+                href: d.href || `/products/${slug}`,
+              };
+            });
+
+            setNavLinks((prev) =>
+              prev.map((item) => {
+                if (item.label === "Products") {
+                  return {
+                    ...item,
+                    children: productChildren,
+                  };
+                }
+                return item;
+              })
+            );
+          }
+        })
+        .catch((err) => {
+          console.warn("Failed to fetch dynamic division links for header:", err);
+        });
+    };
+
+    loadNavLinks();
+    window.addEventListener("focus", loadNavLinks);
+    return () => window.removeEventListener("focus", loadNavLinks);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -312,7 +355,7 @@ export default function Header() {
             <div className={styles.drawerNav}>
               <div className={styles.drawerContent}>
                 <ul className={styles.drawerList}>
-                  {pageLinks.map(renderNavItem)}
+                  {navLinks.map(renderNavItem)}
                 </ul>
               </div>
 

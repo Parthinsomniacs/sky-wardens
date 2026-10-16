@@ -21,25 +21,9 @@ const login = async (req, res, next) => {
       });
     }
 
-    // 2. Check if account is temporarily locked due to repeated brute-force attempts
-    if (user.isLocked()) {
-      const remainingMinutes = Math.ceil((user.lockUntil - Date.now()) / (60 * 1000));
-      return res.status(429).json({
-        success: false,
-        message: `Account is temporarily locked due to multiple failed login attempts. Please try again in ${remainingMinutes} minute(s).`,
-      });
-    }
-
-    // 3. Verify password hash using bcrypt
+    // 2. Verify password hash using bcrypt
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      // Increment failed attempts and trigger lockout if >= 5
-      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-      if (user.failedLoginAttempts >= 5) {
-        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
-      }
-      await user.save({ validateBeforeSave: false });
-
       return res.status(401).json({
         success: false,
         message: "Invalid credentials.",

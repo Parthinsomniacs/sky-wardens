@@ -235,6 +235,70 @@
   filter: blur(5px) brightness(0.55);
 }
 
+/* Empty media placeholder when no image uploaded in Admin */
+.emptyPlaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, #1a1c23 0%, #0c0d10 100%);
+  overflow: hidden;
+}
+
+.placeholderPattern {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.placeholderContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.placeholderIconBox {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.placeholderIcon {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.placeholderLabel {
+  font-family: var(--font-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent, #0284c7);
+  margin-bottom: 0.25rem;
+}
+
+.placeholderHint {
+  font-family: var(--font-primary);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 /* Center floating card with logo zoom-in animation on hover */
 .centerCard {
   position: absolute;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Menu,
   X,
@@ -33,6 +33,7 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(true);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const userMenuRef = useRef(null);
 
@@ -66,6 +67,60 @@ export default function AdminLayout({
     (p) => (p.division || "").toLowerCase() === "defence"
   ).length;
 
+  const divisionNavItems = useMemo(() => {
+    if (divisions && divisions.length > 0) {
+      return divisions
+        .filter((d) => (d.status || "Active") === "Active")
+        .map((d) => {
+          const slug = d.slug || d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          const count = products.filter(
+            (p) => (p.division || "").toLowerCase() === d.name.toLowerCase()
+          ).length;
+
+          let Icon = Layers;
+          let badgeColor = "bg-sky-600";
+          if (d.name.toLowerCase() === "aerospace") {
+            Icon = Plane;
+            badgeColor = "bg-sky-600";
+          } else if (d.name.toLowerCase() === "defence") {
+            Icon = Shield;
+            badgeColor = "bg-emerald-600";
+          } else if (d.name.toLowerCase() === "advanced systems") {
+            Icon = Cpu;
+            badgeColor = "bg-purple-600";
+          } else if (d.name.toLowerCase() === "petrochemicals") {
+            Icon = FlaskConical;
+            badgeColor = "bg-amber-600";
+          }
+
+          return {
+            id: `products-${slug}`,
+            label: `${d.name} Products`,
+            icon: Icon,
+            badge: count > 0 ? count : null,
+            badgeColor,
+          };
+        });
+    }
+
+    return [
+      {
+        id: "products-aerospace",
+        label: "Aerospace Products",
+        icon: Plane,
+        badge: aerospaceCount > 0 ? aerospaceCount : null,
+        badgeColor: "bg-sky-600",
+      },
+      {
+        id: "products-defence",
+        label: "Defence Products",
+        icon: Shield,
+        badge: defenceCount > 0 ? defenceCount : null,
+        badgeColor: "bg-emerald-600",
+      },
+    ];
+  }, [divisions, products, aerospaceCount, defenceCount]);
+
   const navGroups = [
     {
       group: "CORE OPERATIONS",
@@ -97,20 +152,7 @@ export default function AdminLayout({
     {
       group: "PRODUCT CATALOGS",
       items: [
-        {
-          id: "products-aerospace",
-          label: "Aerospace Products",
-          icon: Plane,
-          badge: aerospaceCount > 0 ? aerospaceCount : null,
-          badgeColor: "bg-sky-600",
-        },
-        {
-          id: "products-defence",
-          label: "Defence Products",
-          icon: Shield,
-          badge: defenceCount > 0 ? defenceCount : null,
-          badgeColor: "bg-emerald-600",
-        },
+        ...divisionNavItems,
         {
           id: "masters",
           label: "Masters (Categories)",
@@ -148,12 +190,23 @@ export default function AdminLayout({
         return "Aerospace Products Catalog";
       case "products-defence":
         return "Defence Products Catalog";
+      case "masters":
+        return "Masters (Divisions & Categories)";
       case "users":
         return "Admin Users & Clearance";
       case "profile":
         return "Profile";
-      default:
+      default: {
+        if (tab.startsWith("products-")) {
+          const matched = divisions.find(
+            (d) =>
+              `products-${d.slug || d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` ===
+              tab
+          );
+          if (matched) return `${matched.name} Products Catalog`;
+        }
         return "Management Console";
+      }
     }
   };
 
@@ -392,15 +445,12 @@ export default function AdminLayout({
                   <span className="text-xs font-semibold text-white truncate group-hover:text-sky-300 transition">
                     {user?.name || "Super Admin"}
                   </span>
-                  <span className="text-[10px] text-gray-400 truncate">
-                    {user?.clearance || "Level 5 Top Secret"}
-                  </span>
                 </div>
               )}
             </button>
             {sidebarOpen && (
               <button
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 title="Sign Out"
                 className="text-gray-400 hover:text-red-400 p-1.5 rounded transition-colors cursor-pointer"
               >
@@ -507,7 +557,7 @@ export default function AdminLayout({
                     <button
                       onClick={() => {
                         setUserDropdownOpen(false);
-                        logout();
+                        setShowLogoutConfirm(true);
                       }}
                       className="w-full px-3 py-2 text-xs text-left text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-lg font-medium cursor-pointer"
                     >
@@ -526,6 +576,50 @@ export default function AdminLayout({
           {children}
         </main>
       </div>
+
+      {/* Logout Confirmation Popup Modal */}
+      {showLogoutConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-gray-100 text-center relative"
+          >
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100">
+              <LogOut className="w-6 h-6 ml-0.5" />
+            </div>
+
+            <h3 className="text-base font-bold text-[#1c232f] tracking-tight">
+              Confirm Logout
+            </h3>
+            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+              Are you sure you want to log out of the Sky Wardens Admin Console?
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition cursor-pointer"
+              >
+                No, Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
+              >
+                Yes, Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

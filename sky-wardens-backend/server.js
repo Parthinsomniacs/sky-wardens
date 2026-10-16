@@ -14,9 +14,6 @@ connectDB();
 
 const app = express();
 
-// Trust reverse proxy (needed for accurate client IP detection behind proxies/load balancers)
-app.set("trust proxy", 1);
-
 // 1. Security Headers
 app.use(helmet());
 
@@ -41,23 +38,17 @@ app.use(
   })
 );
 
-// 3. Body Parser (limit payload to 50MB for high-res base64 / product images)
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+// 3. Body Parser (limit payload to 10MB for base64 / product images)
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// 4. NoSQL Query Injection & Prototype Pollution Sanitization (Express 5 Compatible)
+// 4. NoSQL Query Injection Sanitization (Express 5 Compatible)
 const cleanSanitize = (obj) => {
   if (!obj || typeof obj !== "object") return;
   for (const key of Object.keys(obj)) {
-    if (
-      key.startsWith("$") ||
-      key.includes(".") ||
-      key === "__proto__" ||
-      key === "constructor" ||
-      key === "prototype"
-    ) {
+    if (key.startsWith("$") || key.includes(".")) {
       delete obj[key];
-    } else if (typeof obj[key] === "object" && obj[key] !== null) {
+    } else if (typeof obj[key] === "object") {
       cleanSanitize(obj[key]);
     }
   }
@@ -93,7 +84,6 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", require("./src/routes/authRoutes"));
 app.use("/api/products", require("./src/routes/productRoutes"));
 app.use("/api/divisions", require("./src/routes/divisionRoutes"));
-app.use("/api/categories", require("./src/routes/categoryRoutes"));
 app.use("/api/leads", require("./src/routes/leadRoutes"));
 app.use("/api/users", require("./src/routes/userRoutes"));
 

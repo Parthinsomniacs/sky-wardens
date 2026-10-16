@@ -55,9 +55,14 @@ export default function ProductDetailModal({
 
   if (!product) return null;
 
-  const inquiryUrl = `/contact?inquiryType=${encodeURIComponent(
-    "Product(s) Inquiry"
-  )}&products=${encodeURIComponent(product.name)}`;
+  const productSlug =
+    product.id ||
+    product.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+  const inquiryUrl = `/contact?product=${encodeURIComponent(productSlug)}#contact-form`;
 
   return (
     <div
@@ -177,6 +182,7 @@ export default function ProductDetailModal({
                 fill
                 sizes="(max-width: 900px) 100vw, 420px"
                 className={styles.productImage}
+                unoptimized={Boolean(product.imageSrc?.startsWith("data:"))}
               />
             </div>
           </div>

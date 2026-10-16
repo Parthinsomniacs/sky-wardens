@@ -98,7 +98,7 @@ function AppContent() {
       return <ContactLeads />;
     }
     if (currentTab === "users") {
-      return <AdminUsers />;
+      return <AdminUsers onNavigateTab={handleTabChange} />;
     }
     if (currentTab.startsWith("products-") || currentTab === "products") {
       let initialDivision = "Aerospace";
@@ -119,7 +119,7 @@ function AppContent() {
           ? "Aerospace"
           : currentTab === "products-defence"
           ? "Defence"
-          : null;
+          : initialDivision;
 
       return (
         <ProductsPage
